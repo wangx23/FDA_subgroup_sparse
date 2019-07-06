@@ -85,7 +85,11 @@ FDAsubgroup = function(ind, tm, y, P = 2, knots, boundary = c(0,1),
   betam0 = initialcoef(ind = ind,tm = tm,y = y,knots = knots,
                       boundary = boundary,lamv = lamv)
   ### initial value of theta, lamj and sig2
-  group0 = kmeans(betam0,K0)$cluster
+  repeat{
+    group0 = kmeans(betam0,K0)$cluster
+    if(min(table(group0))>1){break}
+  }
+  
   #group0 = group
   res0 = EMgroup(ind = ind,tm = tm, y = y, knots= knots, 
                  group0 = group0, P = P, betam0 = betam0, boundary = boundary,

@@ -5,6 +5,7 @@ source("simdat.R")
 source("initial.R")
 source("EMgroup.R")
 source("FDAsubgroup.R")
+source("BICvalue.R")
 
 sig2 = 0.1
 lamj = c(0.2,0.1)
@@ -86,6 +87,30 @@ for(j in 1:length(lamv))
 res = FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = 2,
                    knots = seq(0,1,length.out = 6)[2:5],
                    lam = lamv[which.min(BICvec)],maxiter = 50)
+
+
+
+#### test for both lambda and P ####
+
+lamv = seq(0.2,1,by = 0.05)
+BICm = matrix(0,length(lamv), 3)
+for(j in 1:length(lamv))
+{
+  for(Pv in 1:3)
+  {
+    resi = FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = Pv,
+                       knots = seq(0,1,length.out = 6)[2:5],
+                       lam = lamv[j],maxiter = 50)
+    BICm[j,Pv] = BICvalue(resi)
+  }
+}
+
+inds = which(BICm == min(BICm), arr.ind = TRUE)
+
+res = FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = inds[2],
+                  knots = seq(0,1,length.out = 6)[2:5],
+                  lam = lamv[inds[1]],maxiter = 50)
+
 
 
 

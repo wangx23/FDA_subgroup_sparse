@@ -43,11 +43,10 @@ source("getgroup.R")
 # seed = 2118
 # P =2
 
-FDAsubgroup = function(ind, tm, y, P = 2, knots, boundary = c(0,1),
+FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
                        lam = 0.5, nu = 1, gam = 3, maxiter = 500, 
                        tolabs = 1e-5, tolrel = 1e-3,
                        maxiterem = 50, tolem = 1e-3, K0 = 10, 
-                       lamv = seq(0,20,by = 0.5)[-1], 
                        sl.v=rep(0.5,10), max.step = 10, 
                        tolnt=1e-3,condtol=1e+10,
                        seed = 2118)
@@ -81,9 +80,6 @@ FDAsubgroup = function(ind, tm, y, P = 2, knots, boundary = c(0,1),
   }
   
   set.seed(seed)
-  ### initial value of beta ignoring covaraince structure
-  betam0 = initialcoef(ind = ind,tm = tm,y = y,knots = knots,
-                      boundary = boundary,lamv = lamv)
   ### initial value of theta, lamj and sig2
   repeat{
     group0 = kmeans(betam0,K0)$cluster

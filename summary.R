@@ -14,3 +14,5 @@ sqrt(mean((resultP1[,2] - 0.1)^2))
 
 summary(resultP1[,3])
 sum(resultP1[,3]==2)
+summary(resultP1[,1])
+sd(resultP1[,1])

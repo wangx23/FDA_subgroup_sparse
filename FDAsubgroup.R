@@ -212,8 +212,16 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
   betaest = betaavg[groupest,]
   
   
+  #### mean function estimate #####
+  meanfunest = rep(0, ntotal)
+  for(i in 1:n)
+  {
+    indi = ind == uind[i]
+    meanfunest[indi] = Bm[indi,] %*% betaest[i,]
+  }
+  
   res =  list(betam = betam, betaest = betaest, betaavg = betaavg, 
-              groupest = groupest, likevalue = likevalue,
+              meanfunest = meanfunest, groupest = groupest, likevalue = likevalue,
           sig2 = sig2, theta = theta, lamj = lamj,
           deltam = deltam, rm = rm, sm = sm,
           tolpri = tolpri, toldual = toldual, niteration = niteration, flag = flag, ntotal = ntotal)

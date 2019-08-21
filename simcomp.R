@@ -17,12 +17,16 @@ library(Rcpp);
 library(RcppArmadillo);
 library(Lclust)
 
+
+#sourceCpp("../LongitudinalClustering-master/admmmcp_code.cpp")
+#source("../LongitudinalClustering-master/clustering_functions.R")
+#source("../LongitudinalClustering-master/BICfunctions.R")
+
 subfun = function(mm)
 {
-  dat = simdat(sig2 = 0.1,lamj = c(0.2,0.1),mvec = c(5,20),ncl = 50,seed = mm)
+  dat = simdat(sig2 = 0.1,lamj = c(0.2,0.1),mvec = c(5,20),ncl = 50,seed = mm + 4452)
   group0 = rep(1:2,each = 50)
-  
-  
+
   knots1 = seq(0,1,length.out = 6)[2:5]
   betam0 = initialcoef(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1,
                        lamv = seq(0,20,by = 0.5)[-1])
@@ -42,10 +46,16 @@ subfun = function(mm)
   {
     for(j in 1:length(lamvec))
     {
-      resi = FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = Pv,
+      resi = try(FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = Pv,
                          betam0 = betam0, knots = knots1,
-                         lam = lamvec[j],maxiter = 2,tolabs = 1e-4,tolrel = 1e-2)
-      BICm[j,Pv] = BICvalue(resi)
+                         lam = lamvec[j],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2))
+      errori = inherits(resi,"try-error")
+      if(errori)
+      {
+        BICm[j, Pv] = 99999
+      }else{
+        BICm[j, Pv] = BICvalue(resi)
+      }
     }
   }
   t2 = Sys.time()
@@ -58,7 +68,10 @@ subfun = function(mm)
                     lam = lamvec[inds[1]],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2)
   
   ari1 = randIndex(res$groupest, group0)
-  rmse1 = sqrt(mean(rowSums((res$betam- betaor)^2)))
+  rmse1 = sqrt(mean((meanest1 - dat$mean)^2))
+  
+  ng1 = length(unique(res$groupest))
+  meanest1 = res$meanfunest
   
   
   ####### without covariance structure #####
@@ -102,7 +115,7 @@ subfun = function(mm)
     sol_finalj = prclust_admm(X, y=as.vector(dat$obs), diagD, B_ini0, index,
                               gamma1 = 0.005, gamma2 = lamvec2[j], 
                               theta=1, tau = 2, 
-                              n, p,  max_iter= 2,
+                              n, p,  max_iter= 200,
                               eps_abs=1e-4, eps_rel=1e-2)
     BIC2vec[j] = BIC2(obj = sol_finalj,dat$obs, dat$ind, X, basis, n, 0.005, D)
     
@@ -114,7 +127,7 @@ subfun = function(mm)
   
   sol_final = prclust_admm(X, y=as.vector(dat$obs), diagD, B_ini0, index,
                            gamma1 = 0.005, gamma2 = lamvec2[inds2], 
-                           theta=1, tau = 2, n, p,  max_iter=2,
+                           theta=1, tau = 2, n, p,  max_iter=200,
                            eps_abs=1e-4, eps_rel=1e-2)
   #result:
   Ad_final <- create_adjacency(sol_final$V, n);
@@ -124,15 +137,19 @@ subfun = function(mm)
   #number of clusters
   k_final <- cls_final$no
   
-  ari2 = randIndex(cls_final$membership, group0)
+  meanest2 = X %*% c(sol_final$B)
   
-  rmse2 = sqrt(mean(rowSums((t(sol_final$B) - betaor)^2)))
+  
+  ari2 = randIndex(cls_final$membership, group0)
+  rmse2 = sqrt(mean((meanest2 - dat$mean)^2))
+  
   
   time1 = difftime(t2, t1, units = "mins")
   time2 = difftime(t4, t3, units = "mins")
   
-  result = rbind(c(ari1, rmse1, time1), c(ari2, rmse2, time2))
-  colnames(result) = c("ARI","RMSE","time(mins)")
+  result = rbind(c(ari1, rmse1, time1,lamvec[inds[1]], ng1, inds[2]), 
+                 c(ari2, rmse2, time2, lamvec2[inds2], k_final,0))
+  colnames(result) = c("ARI","RMSE","time(mins)","lam","numgroup","numP")
   return(result)
   
 }
@@ -140,6 +157,14 @@ subfun = function(mm)
 
 cl <- makeCluster(28)  
 registerDoParallel(cl)  
-resultcomp1 <- foreach(mm=1:10,
-                       .packages=c("flexclust","orthogonalsplinebasis","plyr","fda","Lclust")) %dopar%  subfun(mm)
+resultcomp1 <- foreach(mm=1:100,
+                       .packages=c("flexclust","orthogonalsplinebasis","plyr","fda","Lclust","igraph")) %dopar%  subfun(mm)
 stopCluster(cl) 
+save(resultcomp1,file = "result/resultcomp1.RData")
+
+# res1 = subfun(1)
+# res10 = subfun(10)
+# 
+# res20 = subfun(20)
+
+

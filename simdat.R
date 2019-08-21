@@ -54,7 +54,8 @@ simdat = function(sig2, lamj, mvec, ncl = 50, seed = 2228 )
   dat = data.frame(group = rep(group, nsub),
                     ind = rep(1:(2*ncl),nsub),
                     time = runif(ntotal),
-                    obs = rep(0, ntotal))
+                    obs = rep(0, ntotal),
+                    mean = rep(0, ntotal))
   
   rande = sqrt(sig2) * rnorm(ntotal)
   
@@ -71,6 +72,8 @@ simdat = function(sig2, lamj, mvec, ncl = 50, seed = 2228 )
   
   
   dat$obs = c(mean1, mean2) + vi + rande
+  
+  dat$mean = c(mean1, mean2)
   
   return(dat)
 
@@ -119,6 +122,9 @@ simdat1 = function(knots, betag, sig2, lamj, mvec, ncl = 50, seed = 2228, bounda
   return(dat)
   
 }
+
+
+####### simulate data with three groups #### 
 
 
 

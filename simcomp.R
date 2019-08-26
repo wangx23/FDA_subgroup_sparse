@@ -68,10 +68,10 @@ subfun = function(mm)
                     lam = lamvec[inds[1]],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2)
   
   ari1 = randIndex(res$groupest, group0)
-  rmse1 = sqrt(mean((meanest1 - dat$mean)^2))
-  
-  ng1 = length(unique(res$groupest))
   meanest1 = res$meanfunest
+  rmse1 = sqrt(mean((meanest1 - dat$mean)^2))
+  ng1 = length(unique(res$groupest))
+
   
   
   ####### without covariance structure #####

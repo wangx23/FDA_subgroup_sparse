@@ -126,6 +126,62 @@ simdat1 = function(knots, betag, sig2, lamj, mvec, ncl = 50, seed = 2228, bounda
 
 ####### simulate data with three groups #### 
 
+mu21 = function(x)
+{
+  sqrt(2)*sin(4*pi*x)
+}
+mu21 = Vectorize(mu21)
+
+mu22 = function(x)
+{
+  exp(-10*(x-0.25)^2)
+}
+mu22 = Vectorize(mu22)
+
+mu23 = function(x)
+{
+  exp(-10*(x-0.25)^2)
+}
+mu23 = Vectorize(mu23)
+
+simdat2 = function(sig2, lamj, mvec, ncl = 50, seed = 2228 )
+{
+  set.seed(seed)
+  
+  ## number of observations for each subject, three groups 
+  
+  nsub = sample(mvec[1]:mvec[2], ncl*3, replace = TRUE)
+  ntotal = sum(nsub)
+  group = rep(1:3, each = ncl)
+  
+  dat = data.frame(group = rep(group, nsub),
+                   ind = rep(1:(3*ncl),nsub),
+                   time = runif(ntotal),
+                   obs = rep(0, ntotal),
+                   mean = rep(0, ntotal))
+  
+  rande = sqrt(sig2) * rnorm(ntotal)
+  
+  mean1 = mu21(dat$time[dat$group==1])
+  mean2 = mu22(dat$time[dat$group==2])
+  
+  vi = rep(0, ntotal)
+  for(i in 1:(ncl*2))
+  {
+    timei = dat$time[dat$ind==i]
+    vi[dat$ind ==i] = sqrt(lamj[1]) * rnorm(1) * psi1(timei) +
+      sqrt(lamj[2]) * rnorm(1) * psi2(timei)
+  }
+  
+  
+  dat$obs = c(mean1, mean2) + vi + rande
+  
+  dat$mean = c(mean1, mean2)
+  
+  return(dat)
+  
+}
+
 
 
 

@@ -1,5 +1,6 @@
 ###### parallel test ##### 
 library(flexclust)
+library(funcy)
 library(doParallel)
 
 source("simdat.R")
@@ -142,6 +143,12 @@ subfun = function(mm)
   
   ari2 = randIndex(cls_final$membership, group0)
   rmse2 = sqrt(mean((meanest2 - dat$mean)^2))
+  
+  #### James and Sugar(2003)
+  
+  resjs = funcit(data = as.matrix(dat[,c("ind","obs","time")]), 
+                 methods = "fitfclust",k = 2)
+  groupjs = resjs@allClusters
   
   
   time1 = difftime(t2, t1, units = "mins")

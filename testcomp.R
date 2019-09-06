@@ -1,5 +1,6 @@
 #### test compare ####
 library(flexclust)
+library(funcy)
 source("simdat.R")
 source("initial.R")
 source("EMgroup.R")

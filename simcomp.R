@@ -2,6 +2,7 @@
 library(flexclust)
 library(funcy)
 library(doParallel)
+library(mcclust)
 
 source("simdat.R")
 source("initial.R")
@@ -150,6 +151,11 @@ subfun = function(mm)
                  methods = "fitfclust",k = 2)
   groupjs = resjs@allClusters
   
+  vijs = vi.dist(groupjs, group0)
+  
+  resjs@models$fitfclust@fit$parameters
+  
+
   
   time1 = difftime(t2, t1, units = "mins")
   time2 = difftime(t4, t3, units = "mins")

@@ -220,7 +220,8 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
     meanfunest[indi] = Bm[indi,] %*% betaest[i,]
   }
   
-  res =  list(betam = betam, betaest = betaest, betaavg = betaavg, 
+  res =  list(betam = betam, betaest = betaest, betaavg = betaavg, knots = knotsall,
+              obasisobj = obasisobj,
               meanfunest = meanfunest, groupest = groupest, likevalue = likevalue,
           sig2 = sig2, theta = theta, lamj = lamj,
           deltam = deltam, rm = rm, sm = sm,

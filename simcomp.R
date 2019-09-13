@@ -73,6 +73,12 @@ subfun = function(mm)
   meanest1 = res$meanfunest
   rmse1 = sqrt(mean((meanest1 - dat$mean)^2))
   ng1 = length(unique(res$groupest))
+  
+  res$betam
+  
+  evaluate(res$obasisobj,0.1)
+  
+  
 
   
   

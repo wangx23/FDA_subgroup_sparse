@@ -74,14 +74,9 @@ subfun = function(mm)
   rmse1 = sqrt(mean((meanest1 - dat$mean)^2))
   ng1 = length(unique(res$groupest))
   
-  res$betam
-  
-  evaluate(res$obasisobj,0.1)
-  
+  isefda = ISEFDA(obj = res)
   
 
-  
-  
   ####### without covariance structure #####
   nknots = 4;
   order = 4;
@@ -146,20 +141,48 @@ subfun = function(mm)
   k_final <- cls_final$no
   
   meanest2 = X %*% c(sol_final$B)
-  
-  
   ari2 = randIndex(cls_final$membership, group0)
   rmse2 = sqrt(mean((meanest2 - dat$mean)^2))
   
+  iseind = ISEind(sol_final$B, timerange, order, nknots)
+  
   #### James and Sugar(2003)
   
+  ctrl <- new("funcyCtrlMbc", baseType = "splines", dimBase = 8, 
+              redDim = 1, seed = 16908)
+  
   resjs = funcit(data = as.matrix(dat[,c("ind","obs","time")]), 
-                 methods = "fitfclust",k = 2)
+                 methods = "fitfclust",k = 2,funcyCtrl = ctrl)
   groupjs = resjs@allClusters
+  
+  time = resjs@models$fitfclust@time
+  m = length(time)
+  
+  bObj <-  create.bspline.irregular(c(time[1],time[m]),
+                                    nbasis=8,
+                                    norder=min(8, 4))
+  
+  phi <- eval.basis(time, bObj)
+  base1 <- svd(phi)$u
+  
+  
+  
+  base = resjs@models$fitfclust@fit$base
+  
+  parmest =   resjs@models$fitfclust@fit$parameters
+  
+  Lambda.alpha = as.vector(parmest$lambda.zero) + parmest$Lambda %*% t(parmest$alpha)
+  temp1 = base %*% Lambda.alpha
+  temp2 = resjs@models$fitfclust@centers
+  
+  time = resjs@models$fitfclust@time
+
+  
   
   vijs = vi.dist(groupjs, group0)
   
-  resjs@models$fitfclust@fit$parameters
+
+
   
 
   

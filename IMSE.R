@@ -1,8 +1,6 @@
 ###### IMSE based on grids #####
 
 ##### FDA ####
-
-
 #### ISE of mean functions (over grids, not all simulations) ####
 
 ISEFDAmean = function(obj, group0,grids, funlist)
@@ -30,7 +28,8 @@ ISEFDAmean = function(obj, group0,grids, funlist)
 
 
 ### eigenfunctions ###
-
+### match the sign of the max abs value in the true
+### If the true number of components is correct ####
 ISEFDAeig = function(obj, grids, funlist)
 {
   thetaest = obj$theta
@@ -38,11 +37,21 @@ ISEFDAeig = function(obj, grids, funlist)
   obasisobj = obj$obasisobj
   bmgrid = evaluate(res$obasisobj,grids)
   
-  eigenfunest = bmgrid%*%thetaest
+  eigenfunest = bmgrid%*%thetaest  
+  eigenfunmat = sapply(1:length(funlist),function(x){eigenlist[[x]](grids)})  ### true
+  indmax = apply(abs(eigenfunmat),2,which.max)
+  signmax = sapply(eigenfunmat[cbind(indmax,1:2)],sign)
   
-  eigenfunmat = sapply(1:length(funlist),function(x){eigenlist[[x]](grids)})
+  signmaxest = sapply(eigenfunest[cbind(indmax,1:2)],sign)
   
+  eigenfunest = sapply(1:ncol(eigenfunest), function(x){eigenfunest[,x]*signmax[x]*signmaxest[x]})
+  
+  ISEvec = colMeans((eigenfunest - eigenfunmat)^2)
+  return(ISEvec)
 }
+
+
+
 #### ISE mean for IND #####
 ISEINDmean = function(betaest, group0, grids, funlist, nknots =4, order = 4)
 {

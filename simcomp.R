@@ -9,6 +9,7 @@ source("initial.R")
 source("EMgroup.R")
 source("FDAsubgroup.R")
 source("BICvalue.R")
+source("fclust.R")
 
 library(plyr);
 library(fda);#bspline basis
@@ -148,39 +149,39 @@ subfun = function(mm)
   
   #### James and Sugar(2003)
   
-  ctrl <- new("funcyCtrlMbc", baseType = "splines", dimBase = 8, 
-              redDim = 1, seed = 16908)
   
-  resjs = funcit(data = as.matrix(dat[,c("ind","obs","time")]), 
-                 methods = "fitfclust",k = 2,funcyCtrl = ctrl)
-  groupjs = resjs@allClusters
-  
-  time = resjs@models$fitfclust@time
-  m = length(time)
-  
-  bObj <-  create.bspline.irregular(c(time[1],time[m]),
-                                    nbasis=8,
-                                    norder=min(8, 4))
-  
-  phi <- eval.basis(time, bObj)
-  base1 <- svd(phi)$u
-  
-  
-  
-  base = resjs@models$fitfclust@fit$base
-  
-  parmest =   resjs@models$fitfclust@fit$parameters
-  
-  Lambda.alpha = as.vector(parmest$lambda.zero) + parmest$Lambda %*% t(parmest$alpha)
-  temp1 = base %*% Lambda.alpha
-  temp2 = resjs@models$fitfclust@centers
-  
-  time = resjs@models$fitfclust@time
-
-  
-  
-  vijs = vi.dist(groupjs, group0)
-  
+  # 
+  # ctrl <- new("funcyCtrl", baseType = "splines", dimBase = 8, 
+  #             redDim = 1, seed = 16908)
+  # 
+  # dat1 = rbind(dat, c(2,200,NA, 0.5,NA))
+  # 
+  # resjs = funcit(data = as.matrix(dat1[,c("ind","obs","time")]), 
+  #                methods = "fitfclust",k = 2,funcyCtrl = ctrl)
+  # groupjs = resjs@allClusters
+  # 
+  # grid = resjs@models$fitfclust@fit$grid
+  # 
+  # bObj <-  create.bspline.irregular(c(grid[1],grid[m]),
+  #                                   nbasis=8,
+  #                                   norder=min(8, 4))
+  # 
+  # phi <- eval.basis(grid, bObj)
+  # base1 <- svd(phi)$u
+  # 
+  # 
+  # parmest =   resjs@models$fitfclust@fit$parameters
+  # Lambda.alpha = as.vector(parmest$lambda.zero) + parmest$Lambda %*% t(parmest$alpha)
+  # temp1 = base1 %*% Lambda.alpha
+  # temp2 = resjs@models$fitfclust@centers
+  # 
+  # 
+  # dat2 = dat %>% arrange(time)
+  # 
+  # 
+  # 
+  # vijs = vi.dist(groupjs, group0)
+  # 
 
 
   

@@ -1,97 +1,80 @@
+###### IMSE based on grids #####
 
-###### two groups setting #####
-mu1 = function(x)
-{
-  2*(x/50)^(0.2)
-}
-
-mu1 = Vectorize(mu1)
-
-mu2 = function(x)
-{
-  -2*(x/50)^(0.2)
-}
-
-mu2 = Vectorize(mu2)
+##### FDA ####
 
 
-# eigen functions
-psi1 = function(x)
-{
-  sqrt(2)*sin(2*pi*x)
-}
+#### ISE of mean functions (over grids, not all simulations) ####
 
-psi1 = Vectorize(psi1)
-
-
-psi2 = function(x)
-{
-  sqrt(2)*cos(2*pi*x)
-}
-
-psi2 = Vectorize(psi2)
-
-
-
-#### ISE of two functions (without mean now) ####
-### lower is the lower bound and upper is the upper bound 
-## obj is estimate obj of FDAsubgroup 
-ISEFDA = function(obj, lower = 0, upper = 1)
+ISEFDAmean = function(obj, group0,grids, funlist)
 {
   obasisobj = obj$obasisobj
   betaest = obj$betaest
-  groupest = obj$groupest
-  fundiff = function(x, ind)
+  nobs = length(group0)
+  
+  bmgrid = evaluate(res$obasisobj,grids)
+  
+  meanfungroup = bmgrid %*% t(obj$betaavg)
+  
+  ISEvec = rep(0, nobs)
+  for(i in 1:nobs)
   {
-    bmx = evaluate(res$obasisobj,x)
-    meanest = bmx %*% betaest[ind,]
-    groupi = groupest[ind]
-    if(groupi == 1)
-    {
-      mean0 = mu1(x)
-    }
-    if(groupi == 2)
-    {
-      mean0 = mu2(x)
-    }
-    
-    meandiff = (meanest - mean0)^2
-    return(meandiff)
+    groupi = group0[i]
+    meani = funlist[[groupi]](grids) ## true mean 
+    ISEvec[i] = mean((meani - meanfungroup[,groupi])^2)
   }
   
-
-  ISEvec = unlist(lapply(1:nrow(betaest),function(ind){stats::integrate(function(x){fundiff(x,ind)},lower = 0,upper = 1)$value}))
- 
   return(ISEvec)
+
 }
 
 
 
-#### betaest is the estimate of Zhu and qu, ncol of columns is 100
-ISEind = function(betaest, timerange, order, nknots)
+### eigenfunctions ###
+
+ISEFDAeig = function(obj, grids, funlist)
 {
-  fundiff = function(x,ind)
+  thetaest = obj$theta
+  
+  obasisobj = obj$obasisobj
+  bmgrid = evaluate(res$obasisobj,grids)
+  
+  eigenfunest = bmgrid%*%thetaest
+  
+  eigenfunmat = sapply(1:length(funlist),function(x){eigenlist[[x]](grids)})
+  
+}
+#### ISE mean for IND #####
+ISEINDmean = function(betaest, group0, grids, funlist, nknots =4, order = 4)
+{
+  bmx = bsplineS(grids, knots_eq3(timerange, k = order, m = nknots), norder = order)
+  nobs = length(group0)
+  
+  ISEvec = rep(0, nobs)
+  for(i in 1:nobs)
   {
-    bmx = bsplineS(x, knots_eq3(timerange, k = order, m = nknots), norder = order)
-    meanest = bmx %*% (betaest[,ind])
-    groupi = groupest[ind]
-    if(groupi == 1)
-    {
-      mean0 = mu1(x)
-    }
-    if(groupi == 2)
-    {
-      mean0 = mu2(x)
-    }
-    
-    meandiff = (meanest - mean0)^2
-    return(meandiff)
+    groupi = group0[i]
+    meani = funlist[[groupi]](grids)
+    meanesti = bmx %*% betaest[i,]
+    ISEvec[i] = mean((meani - meanesti)^2)
   }
-  
-  ISEvec = unlist(lapply(1:ncol(betaest),function(ind){stats::integrate(function(x){fundiff(x,ind)},lower = 0,upper = 1)$value}))
   return(ISEvec)
-  
 }
 
 
-#### ISE for James and 
+
+#### ISE for JS ######
+
+ISEJSmean = function(obj, group0, grids, funlist)
+{
+  centers = fclust.curvepred(fit=obj)$meancurves
+  nobs = length(group0)
+  
+  ISEvec = rep(0, nobs)
+  for(i in 1:nobs)
+  {
+    groupi = group0[i]
+    meani = funlist[[groupi]](grids) ## true mean 
+    ISEvec[i] = mean((meani - centers[,groupi])^2)
+  }
+  return(ISEvec)
+}

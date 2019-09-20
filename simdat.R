@@ -124,6 +124,53 @@ simdat1 = function(knots, betag, sig2, lamj, mvec, ncl = 50, seed = 2228, bounda
 }
 
 
+
+
+####### time is randomly selected from a given grid #####
+
+
+funlist2 = list(Vectorize(function(x){2*(x/50)^(0.2)}),
+                Vectorize(function(x){-2*(x/50)^(0.2)})
+)
+
+
+simdat2 = function(sig2, lamj, mvec = c(5,20), ncl = 50, 
+                   grids = seq(0,1,by =0.001), 
+                   funlist, seed = 2228)
+{
+  set.seed(seed)
+  ngroup = length(funlist2)
+  ## number of observations for each subject
+  
+  nsub = sample(mvec[1]:mvec[2], ncl*ngroup, replace = TRUE)
+  ntotal = sum(nsub)
+  group = rep(1:ngroup, each = ncl)
+  
+  dat = data.frame(group = rep(group, nsub),
+                   ind = rep(1:(ngroup*ncl),nsub),
+                   time = sample(grids,ntotal,replace = TRUE),
+                   obs = rep(0, ntotal),
+                   mean = rep(0, ntotal))
+  
+  rande = sqrt(sig2) * rnorm(ntotal)
+  
+  for(j in 1:ngroup)
+  {
+    dat$mean[dat$group==j] = funlist[[j]](dat$time[dat$group==j])
+  }
+ 
+  vi = rep(0, ntotal)
+  for(i in 1:(ncl*ngroup))
+  {
+    timei = dat$time[dat$ind==i]
+    vi[dat$ind ==i] = sqrt(lamj[1]) * rnorm(1) * psi1(timei) +
+      sqrt(lamj[2]) * rnorm(1) * psi2(timei)
+  }
+  
+  dat$obs = dat$mean + vi + rande
+  return(dat)
+}
+
 ####### simulate data with three groups #### 
 
 mu21 = function(x)
@@ -144,7 +191,7 @@ mu23 = function(x)
 }
 mu23 = Vectorize(mu23)
 
-simdat2 = function(sig2, lamj, mvec, ncl = 50, seed = 2228 )
+simdat3 = function(sig2, lamj, mvec, ncl = 50, seed = 2228 )
 {
   set.seed(seed)
   

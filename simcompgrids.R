@@ -239,7 +239,7 @@ subfun = function(mm)
 
 #res1 = subfun(10)
 
-cl <- makeCluster(28)  
+cl <- makeCluster(24)  
 registerDoParallel(cl)  
 resultcomp1 <- foreach(mm=1:10,
                        .packages=c("flexclust","orthogonalsplinebasis","plyr","fda","Lclust","igraph")) %dopar%  subfun(mm)

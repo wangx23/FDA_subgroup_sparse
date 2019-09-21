@@ -19,7 +19,7 @@ BICvalue = function(obj, c0 = 1)
     log(ntotal)*(Pn*p - nconstraints)
   
   if(obj$likevalue==-99){
-    return(99999)
+    BICvalue = 99999
   }
   
   return(BICvalue)

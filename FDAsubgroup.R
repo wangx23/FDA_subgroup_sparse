@@ -220,6 +220,13 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
     meanfunest[indi] = Bm[indi,] %*% betaest[i,]
   }
   
+  
+  #### re order lam and theta
+  indlam = sort(lamj,index.return= TRUE, decreasing = TRUE)$ix
+  
+  lamj = lamj[indlam]
+  theta = theta[,indlam,drop = FALSE]
+  
   res =  list(betam = betam, betaest = betaest, betaavg = betaavg, knots = knotsall,
               obasisobj = obasisobj,
               meanfunest = meanfunest, groupest = groupest, likevalue = likevalue,

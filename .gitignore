@@ -5,3 +5,6 @@
 .RData
 .csv
 .txt
+.e*
+.o*
+.Rout

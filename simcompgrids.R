@@ -1,7 +1,7 @@
 ###### parallel test, time is randomly selected from grids ##### 
 library(flexclust)
 library(doParallel)
-
+library(mcclust)
 
 source("simdat.R")
 source("initial.R")
@@ -107,6 +107,7 @@ subfun = function(mm)
   
   #### if the number of true componets is selected, calculate IMSE and MSE of eigenvalues
   mse_lamj = rep(0,2)
+  ise_eig = rep(0,2)
   if(inds[2] == 2)
   {
     ise_eig = ISEFDAeig(obj = res,grids = grids,funlist = eigenlist) ### ise of eigenfunction estimates 
@@ -236,13 +237,14 @@ subfun = function(mm)
 }
 
 
-
-#res1 = subfun(10)
+# t1 = Sys.time()
+# res1 = subfun(10)
+# t2 = Sys.time()
 
 cl <- makeCluster(24)  
 registerDoParallel(cl)  
 resultcomp1 <- foreach(mm=1:10,
                        .packages=c("flexclust","orthogonalsplinebasis","plyr","fda","Lclust","igraph")) %dopar%  subfun(mm)
 stopCluster(cl) 
-save(resultcomp1,file = "result/resultcompgrids1.RData")
+save(resultcomp1,file = "../result/resultcompgrids1.RData")
 

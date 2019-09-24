@@ -40,14 +40,14 @@ grids = seq(0,1, by = 0.001)
 
 subfun = function(mm)
 {
-  dat = simdat2(sig2 = 0.1,lamj = c(0.2,0.1),mvec = c(5,20),ncl = 50,
+  dat = simdat2(sig2 = 0.04,lamj = c(0.2,0.1),mvec = c(5,20),ncl = 50,
                 funlist = funlist2, grids = grids, seed = mm + 4452)
   group0 = rep(1:length(funlist2),each = 50)
   ng0 = length(unique(group0))
   
   ##### output matrix for indicators
-  outputmat = matrix(0, 4, 3)
-  rownames(outputmat) = c("ng","ari","vi","np")
+  outputmat = matrix(0, 5, 3)
+  rownames(outputmat) = c("ng","ari","vi","np","lam")
   colnames(outputmat) = c("fda","ind","js")
   
   isemeanmat = matrix(0, length(group0), 3)
@@ -65,7 +65,7 @@ subfun = function(mm)
   betam0 = initialcoef(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1,
                        lamv = seq(0,20,by = 0.5)[-1])
   
-  lamvec = seq(0.2,1,by = 0.05)
+  lamvec = seq(0.1,1,by = 0.025)
   BICm = matrix(0,length(lamvec), 3)
   
   t1 = Sys.time()
@@ -101,7 +101,7 @@ subfun = function(mm)
   vi_fda = vi.dist(group_fda, group0)
   ise_fda = ISEFDAmean(obj = res,group0, grids = grids,funlist = funlist2)
   
-  outputmat[,1] = c(ng_fda, ari_fda, vi_fda, inds[2])
+  outputmat[,1] = c(ng_fda, ari_fda, vi_fda, inds[2],lamvec[inds[1]])
   isemeanmat[,1] = ise_fda
   
   
@@ -155,7 +155,7 @@ subfun = function(mm)
   B_ini0 = update_B_ini(X, diagD, as.vector(dat$obs), n, gamma1, index, lambda0 = gamma1)
   
   t3 = Sys.time()
-  lamvec2 = seq(0.5,2,by=0.1)
+  lamvec2 = seq(0.5,2,by=0.05)
   
   BIC2vec = rep(0, length(lamvec2))
   
@@ -191,7 +191,7 @@ subfun = function(mm)
   ise_ind = ISEINDmean(t(sol_final$B), group0, grids,timerange, funlist2, 
                        nknots =4, order = 4)
   
-  outputmat[,2] = c(ng_ind, ari_ind, vi_fda, 0)
+  outputmat[,2] = c(ng_ind, ari_ind, vi_fda, 0, lamvec2[inds2])
   isemeanmat[,2] = ise_ind
   
   
@@ -217,7 +217,7 @@ subfun = function(mm)
   ari_js= randIndex(group_js, group0)
   vi_js = vi.dist(group_js, group0)
   ise_js = ISEJSmean(obj = fit.js,group0,group_js,grids,funlist = funlist2)
-  outputmat[,3] = c(ng_js, ari_js, vi_js,0)
+  outputmat[,3] = c(ng_js, ari_js, vi_js,0,0)
   isemeanmat[,3] = ise_js
   
   
@@ -243,7 +243,7 @@ subfun = function(mm)
 
 cl <- makeCluster(24)  
 registerDoParallel(cl)  
-resultcomp1 <- foreach(mm=1:10,
+resultcomp1 <- foreach(mm=1:100,
                        .packages=c("flexclust","orthogonalsplinebasis","plyr","fda","Lclust","igraph")) %dopar%  subfun(mm)
 stopCluster(cl) 
 save(resultcomp1,file = "../result/resultcompgrids1.RData")

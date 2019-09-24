@@ -139,7 +139,7 @@ simdat2 = function(sig2, lamj, mvec = c(5,20), ncl = 50,
                    funlist, seed = 2228)
 {
   set.seed(seed)
-  ngroup = length(funlist2)
+  ngroup = length(funlist)
   ## number of observations for each subject
   
   nsub = sample(mvec[1]:mvec[2], ncl*ngroup, replace = TRUE)

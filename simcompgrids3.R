@@ -47,9 +47,9 @@ grids = seq(0,1, by = 0.001)
 
 subfun = function(mm)
 {
-  dat = simdat2(sig2 = 0.04,lamj = c(0.2,0.1),mvec = c(5,20),ncl = 50,
-                funlist = funlist2, grids = grids, seed = mm + 4452)
-  group0 = rep(1:length(funlist2),each = 50)
+  dat = simdat2(sig2 = 0.04,lamj = c(0.1,0.05),mvec = c(5,20),ncl = 50,
+                funlist = funlist3, grids = grids, seed = mm + 4452)
+  group0 = rep(1:length(funlist3),each = 50)
   ng0 = length(unique(group0))
   
   ##### output matrix for indicators
@@ -72,7 +72,7 @@ subfun = function(mm)
   betam0 = initialcoef(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1,
                        lamv = seq(0,20,by = 0.5)[-1])
   
-  lamvec = seq(0.1,1,by = 0.025)
+  lamvec = seq(0.02,0.4,by = 0.02)
   BICm = matrix(0,length(lamvec), 3)
   
   t1 = Sys.time()
@@ -97,16 +97,16 @@ subfun = function(mm)
   
   inds = which(BICm == min(BICm), arr.ind = TRUE)
   
-  res = FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = 3,
+  res = FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = inds[2],
                     betam0 = betam0, knots = seq(0,1,length.out = 5)[2:4],
-                    lam = lamvec[9],maxiter = 100,tolabs = 1e-4,tolrel = 1e-2)
+                    lam = lamvec[inds[1]],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2)
   
   group_fda = res$groupest
   
   ng_fda = length(unique(group_fda))
   ari_fda = randIndex(group_fda, group0)
   vi_fda = vi.dist(group_fda, group0)
-  ise_fda = ISEFDAmean(obj = res,group0, grids = grids,funlist = funlist2)
+  ise_fda = ISEFDAmean(obj = res,group0, grids = grids,funlist = funlist3)
   
   outputmat[,1] = c(ng_fda, ari_fda, vi_fda, inds[2])
   isemeanmat[,1] = ise_fda
@@ -117,8 +117,8 @@ subfun = function(mm)
   ise_eig = rep(0,2)
   if(inds[2] == 2)
   {
-    ise_eig = ISEFDAeig(obj = res,grids = grids,funlist = eigenlist) ### ise of eigenfunction estimates 
-    mse_lamj = (res$lamj -  c(0.2,0.1))^2
+    ise_eig = ISEFDAeig(obj = res,grids = grids,eigenlist = eigenlist) ### ise of eigenfunction estimates 
+    mse_lamj = (res$lamj -  c(0.1,0.05))^2
   }
   
   
@@ -136,13 +136,13 @@ subfun = function(mm)
   
   
   ####### without covariance structure ######
-  nknots = 4;
+  nknots = 3;
   order = 4;
   p =  order + nknots;
   #time points 
   TT = max(table(dat$ind))
   timerange = seq(0, 1, length.out = TT);
-  n = 100
+  n = 150
   
   basis = dlply(dat, .(ind), function(xx) bsplineS(xx$time, knots_eq3(timerange, k = order, m = nknots), norder = order))
   X = bdiag(basis)
@@ -181,7 +181,7 @@ subfun = function(mm)
   inds2 = which.min(BIC2vec)
   
   sol_final = prclust_admm(X, y=as.vector(dat$obs), diagD, B_ini0, index,
-                           gamma1 = 0.005, gamma2 = lamvec2[inds2], 
+                           gamma1 = 0.005, gamma2 = lamvec2[1], 
                            theta=1, tau = 2, n, p,  max_iter=200,
                            eps_abs=1e-4, eps_rel=1e-2)
   #result:
@@ -195,7 +195,7 @@ subfun = function(mm)
   
   ari_ind= randIndex(group_ind, group0)
   vi_ind = vi.dist(group_ind, group0)
-  ise_ind = ISEINDmean(t(sol_final$B), group0, grids,timerange, funlist2, 
+  ise_ind = ISEINDmean(t(sol_final$B), group0, grids,timerange, funlist3, 
                        nknots =4, order = 4)
   
   outputmat[,2] = c(ng_ind, ari_ind, vi_fda, 0)
@@ -218,12 +218,12 @@ subfun = function(mm)
                  curve = dat$ind,
                  timeindex = match(dat$time,grids))
   
-  fit.js = fitfclust(data=datlist,q=8,h=1,p=8,K=2,maxit=30,grid=grids,plot=F,trace=F)
+  fit.js = fitfclust(data=datlist,q=7,h=1,p=8,K=3,maxit=30,grid=grids,plot=F,trace=F)
   group_js = fclust.pred(fit.js)$class.pred
   ng_js = length(unique(group_js))
   ari_js= randIndex(group_js, group0)
   vi_js = vi.dist(group_js, group0)
-  ise_js = ISEJSmean(obj = fit.js,group0,group_js,grids,funlist = funlist2)
+  ise_js = ISEJSmean(obj = fit.js,group0,group_js,grids,funlist = funlist3)
   outputmat[,3] = c(ng_js, ari_js, vi_js,0)
   isemeanmat[,3] = ise_js
   

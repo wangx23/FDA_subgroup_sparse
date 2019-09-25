@@ -29,7 +29,7 @@ ISEFDAmean = function(obj, group0, grids, funlist)
 ### eigenfunctions ###
 ### match the sign of the max abs value in the true
 ### If the true number of components is correct ####
-ISEFDAeig = function(obj, grids, funlist)
+ISEFDAeig = function(obj, grids, eigenlist)
 {
   thetaest = obj$theta
   
@@ -37,7 +37,7 @@ ISEFDAeig = function(obj, grids, funlist)
   bmgrid = evaluate(obj$obasisobj,grids)
   
   eigenfunest = bmgrid%*%thetaest  
-  eigenfunmat = sapply(1:length(funlist),function(x){eigenlist[[x]](grids)})  ### true
+  eigenfunmat = sapply(1:length(eigenlist),function(x){eigenlist[[x]](grids)})  ### true
   indmax = apply(abs(eigenfunmat),2,which.max)
   signmax = sapply(eigenfunmat[cbind(indmax,1:2)],sign)
   

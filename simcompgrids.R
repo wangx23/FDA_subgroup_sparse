@@ -110,7 +110,7 @@ subfun = function(mm)
   ise_eig = rep(0,2)
   if(inds[2] == 2)
   {
-    ise_eig = ISEFDAeig(obj = res,grids = grids,funlist = eigenlist) ### ise of eigenfunction estimates 
+    ise_eig = ISEFDAeig(obj = res,grids = grids,eigenlist = eigenlist) ### ise of eigenfunction estimates 
     mse_lamj = (res$lamj -  c(0.2,0.1))^2
   }
   

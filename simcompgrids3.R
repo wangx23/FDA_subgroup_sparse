@@ -244,14 +244,14 @@ subfun = function(mm)
 }
 
 
- t1 = Sys.time()
- res1 = subfun(10)
- t2 = Sys.time()
+ # t1 = Sys.time()
+ # res1 = subfun(10)
+ # t2 = Sys.time()
 
 cl <- makeCluster(24)  
 registerDoParallel(cl)  
-resultcomp1 <- foreach(mm=1:10,
-                       .packages=c("flexclust","orthogonalsplinebasis","plyr","fda","Lclust","igraph")) %dopar%  subfun(mm)
+resultcomp3 <- foreach(mm=1:100,
+                       .packages=c("flexclust","orthogonalsplinebasis","plyr","fda","Lclust","igraph","mcclust")) %dopar%  subfun(mm)
 stopCluster(cl) 
-save(resultcomp1,file = "../result/resultcompgrids1.RData")
+save(resultcomp3,file = "../result/resultcompgrids3.RData")
 

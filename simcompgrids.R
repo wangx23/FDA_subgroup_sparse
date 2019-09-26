@@ -92,7 +92,7 @@ subfun = function(mm)
   
   res = FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = inds[2],
                     betam0 = betam0, knots = seq(0,1,length.out = 6)[2:5],
-                    lam = lamvec[inds[1]],maxiter = 100,tolabs = 1e-4,tolrel = 1e-2)
+                    lam = lamvec[inds[1]],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2)
   
   group_fda = res$groupest
   
@@ -244,7 +244,7 @@ subfun = function(mm)
 cl <- makeCluster(24)  
 registerDoParallel(cl)  
 resultcomp1 <- foreach(mm=1:100,
-                       .packages=c("flexclust","orthogonalsplinebasis","plyr","fda","Lclust","igraph")) %dopar%  subfun(mm)
+                       .packages=c("flexclust","orthogonalsplinebasis","plyr","fda","Lclust","igraph","mcclust")) %dopar%  subfun(mm)
 stopCluster(cl) 
 save(resultcomp1,file = "../result/resultcompgrids1.RData")
 

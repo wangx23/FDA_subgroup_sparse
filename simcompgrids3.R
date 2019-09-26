@@ -250,8 +250,8 @@ subfun = function(mm)
 
 cl <- makeCluster(24)  
 registerDoParallel(cl)  
-resultcomp3 <- foreach(mm=1:100,
-                       .packages=c("flexclust","orthogonalsplinebasis","plyr","fda","Lclust","igraph","mcclust")) %dopar%  subfun(mm)
+resultcomp3 <- foreach(mm=1:120,
+                       .packages=c("flexclust","orthogonalsplinebasis","plyr","fda","Lclust","igraph","mcclust"),.errorhandling = "remove") %dopar%  subfun(mm)
 stopCluster(cl) 
 save(resultcomp3,file = "../result/resultcompgrids3.RData")
 

@@ -1,5 +1,6 @@
 ###### parallel test, time is randomly selected from grids ##### 
 #### three groups #####
+#### compare the best results one algorithm can have 
 library(flexclust)
 library(doParallel)
 library(mcclust)
@@ -72,34 +73,43 @@ subfun = function(mm)
   betam0 = initialcoef(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1,
                        lamv = seq(0,20,by = 0.5)[-1])
   
-  lamvec = seq(0.1,0.5,length.out = 30)
-  BICm = matrix(0,length(lamvec), 3)
+  lamvec = seq(0.15,0.4,length.out = 50)
+  BICfda = rep(0,length(lamvec))
+  ng_fda_vec = ari_fda_vec = vi_fda_vec = rep(-99, length(lamvec))
   
-  t1 = Sys.time()
-  for(Pv in 1:3)
+  ### fixed P = 2 
+  for(j in 1:length(lamvec))
   {
-    for(j in 1:length(lamvec))
+    resj = try(FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = 2,
+                           betam0 = betam0, knots = knots1,
+                           lam = lamvec[j],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2))
+    errorj = inherits(resj,"try-error")
+    if(errorj)
     {
-      resi = try(FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = Pv,
-                             betam0 = betam0, knots = knots1,
-                             lam = lamvec[j],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2))
-      errori = inherits(resi,"try-error")
-      if(errori)
-      {
-        BICm[j, Pv] = 99999
-      }else{
-        BICm[j, Pv] = BICvalue(resi)
-      }
+      BICfda[j] = 99999
+    }else{
+      BICfda[j] = BICvalue(resj)
+      group_fdaj = resj$groupest
+      ng_fdaj = length(unique(group_fdaj))
+      ari_fdaj = randIndex(group_fdaj, group0)
+      vi_fdaj = vi.dist(group_fdaj, group0)
+      
+      ng_fda_vec[j] = ng_fdaj
+      ari_fda_vec[j] = ari_fdaj
+      vi_fda_vec[j] = vi_fdaj
     }
+    
+
+    
+    
   }
-  t2 = Sys.time()
   
   
-  inds = which(BICm == min(BICm), arr.ind = TRUE)
+  #inds = which(BICm == min(BICm), arr.ind = TRUE)
   
-  res = FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = inds[2],
-                    betam0 = betam0, knots = seq(0,1,length.out = 5)[2:4],
-                    lam = lamvec[inds[1]],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2)
+  #res = FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = inds[2],
+  #                  betam0 = betam0, knots = seq(0,1,length.out = 5)[2:4],
+  #                  lam = lamvec[inds[1]],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2)
   
   group_fda = res$groupest
   
@@ -219,7 +229,7 @@ subfun = function(mm)
                  timeindex = match(dat$time,grids))
   
   fit.js = fitfclust(data=datlist,q=7,h=2,p=8,K=3,maxit=30,grid=grids,plot=F,trace=F)
-
+  
   group_js = fclust.pred(fit.js)$class.pred
   ng_js = length(unique(group_js))
   ari_js= randIndex(group_js, group0)
@@ -245,9 +255,9 @@ subfun = function(mm)
 }
 
 
- # t1 = Sys.time()
- # res1 = subfun(10)
- # t2 = Sys.time()
+# t1 = Sys.time()
+# res1 = subfun(10)
+# t2 = Sys.time()
 
 cl <- makeCluster(24)  
 registerDoParallel(cl)  

@@ -48,7 +48,7 @@ grids = seq(0,1, by = 0.001)
 
 subfun = function(mm)
 {
-  dat = simdat2(sig2 = 0.04,lamj = c(0.1,0.06),mvec = c(5,20),ncl = 50,
+  dat = simdat2(sig2 = 0.01,lamj = c(0.1,0.06),mvec = c(5,20),ncl = 50,
                 funlist = funlist3, grids = grids, seed = mm + 4452)
   group0 = rep(1:length(funlist3),each = 50)
   ng0 = length(unique(group0))
@@ -125,11 +125,9 @@ subfun = function(mm)
   #### if the number of true componets is selected, calculate IMSE and MSE of eigenvalues
   mse_lamj = rep(0,2)
   ise_eig = rep(0,2)
-  if(inds[2] == 2)
-  {
-    ise_eig = ISEFDAeig(obj = res,grids = grids,eigenlist = eigenlist) ### ise of eigenfunction estimates 
-    mse_lamj = (res$lamj -  c(0.1,0.05))^2
-  }
+
+  ise_eig = ISEFDAeig(obj = res,grids = grids,eigenlist = eigenlist) ### ise of eigenfunction estimates 
+  mse_lamj = (res$lamj -  c(0.1,0.05))^2
   
   
   #### If the true number of groups is selected, then calculate the following ####
@@ -171,10 +169,10 @@ subfun = function(mm)
   index = t(combn(n,2));
   B_ini0 = update_B_ini(X, diagD, as.vector(dat$obs), n, gamma1, index, lambda0 = gamma1)
   
-  t3 = Sys.time()
   lamvec2 = seq(0.5,2,by=0.05)
   
   BIC2vec = rep(0, length(lamvec2))
+  ng_ind_vec = ari_ind_vec = vi_ind_vec = rep(0, length(lamvec2))
   
   for(j in 1:length(lamvec2))
   {
@@ -185,8 +183,22 @@ subfun = function(mm)
                               eps_abs=1e-4, eps_rel=1e-2)
     BIC2vec[j] = BIC2(obj = sol_finalj,dat$obs, dat$ind, X, basis, n, 0.005, D)
     
+    Ad_final = create_adjacency(sol_finalj$V, n);
+    G_final = graph.adjacency(Ad_final, mode = 'upper')
+    #clustering membership
+    cls_final = components(G_final);
+    #number of clusters
+    ng_ind = cls_final$no
+    group_ind = cls_final$me
+    ari_ind= randIndex(group_ind, group0)
+    vi_ind = vi.dist(group_ind, group0)
+    
+    ng_ind_vec[j] = ng_ind
+    ari_ind_vec[j] = ari_ind
+    vi_ind_vec[j] = vi_ind
+    
   }
-  t4 = Sys.time()
+
   
   inds2 = which.min(BIC2vec)
   

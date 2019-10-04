@@ -54,8 +54,8 @@ subfun = function(mm)
   ng0 = length(unique(group0))
   
   ##### output matrix for indicators
-  outputmat = matrix(0, 5, 3)
-  rownames(outputmat) = c("ng","ari","vi","lam","np")
+  outputmat = matrix(0, 4, 3)
+  rownames(outputmat) = c("ng","ari","vi","lam")
   colnames(outputmat) = c("fda","ind","js")
   
   isemeanmat = matrix(0, length(group0), 3)
@@ -104,28 +104,20 @@ subfun = function(mm)
     
   }
   
+  ### maximum ari_fda_vec
   
-  #inds = which(BICm == min(BICm), arr.ind = TRUE)
+  inds1 = which(ari_fda_vec == max(ari_fda_vec[ng_fda_vec==3]))[1]
   
-  #res = FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = inds[2],
-  #                  betam0 = betam0, knots = seq(0,1,length.out = 5)[2:4],
-  #                  lam = lamvec[inds[1]],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2)
+  res = FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = 2,
+                   betam0 = betam0, knots = knots1,
+                   lam = lamvec[inds1],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2)
   
-  group_fda = res$groupest
-  
-  ng_fda = length(unique(group_fda))
-  ari_fda = randIndex(group_fda, group0)
-  vi_fda = vi.dist(group_fda, group0)
   ise_fda = ISEFDAmean(obj = res,group0, grids = grids,funlist = funlist3)
   
-  outputmat[,1] = c(ng_fda, ari_fda, vi_fda, lamvec[inds[1]], inds[2])
+  outputmat[,1] = c(ng_fda_vec[inds1], ari_fda_vec[inds1], vi_fda_vec[inds1], lamvec[inds1])
   isemeanmat[,1] = ise_fda
   
   
-  #### if the number of true componets is selected, calculate IMSE and MSE of eigenvalues
-  mse_lamj = rep(0,2)
-  ise_eig = rep(0,2)
-
   ise_eig = ISEFDAeig(obj = res,grids = grids,eigenlist = eigenlist) ### ise of eigenfunction estimates 
   mse_lamj = (res$lamj -  c(0.1,0.05))^2
   
@@ -169,7 +161,7 @@ subfun = function(mm)
   index = t(combn(n,2));
   B_ini0 = update_B_ini(X, diagD, as.vector(dat$obs), n, gamma1, index, lambda0 = gamma1)
   
-  lamvec2 = seq(0.5,2,by=0.05)
+  lamvec2 = seq(0.5,1.5,by=0.025)
   
   BIC2vec = rep(0, length(lamvec2))
   ng_ind_vec = ari_ind_vec = vi_ind_vec = rep(0, length(lamvec2))
@@ -200,7 +192,7 @@ subfun = function(mm)
   }
 
   
-  inds2 = which.min(BIC2vec)
+  inds2 = which(ari_ind_vec == max(ari_ind_vec[ng_ind_vec==3]))[1]
   
   sol_final = prclust_admm(X, y=as.vector(dat$obs), diagD, B_ini0, index,
                            gamma1 = 0.005, gamma2 = lamvec2[inds2], 

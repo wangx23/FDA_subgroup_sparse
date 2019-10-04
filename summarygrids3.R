@@ -35,6 +35,7 @@ apply(output_array3,c(1,2),mean)
 apply(output_array3,c(1,2),sd)
 
 
+
 boxplot(imsemat3/100)
 colMeans(imse_eign_mat3[rowSums(imse_eign_mat3)!=0,])
 sqrt(colMeans(mse_lam_mat3[rowSums(mse_lam_mat3)!=0,]))

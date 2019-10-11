@@ -44,26 +44,33 @@ eigenlist = list(Vectorize(function(x){sqrt(2)*sin(2*pi*x)}),
 
 grids = seq(0,1, by = 0.001)
 
+lam00 = c(0.1,0.05)
 
 
 subfun = function(mm)
 {
-  dat = simdat2(sig2 = 0.01,lamj = c(0.1,0.06),mvec = c(5,20),ncl = 50,
+  dat = simdat2(sig2 = 0.01,lamj = lam00,mvec = c(5,20),ncl = 50,
                 funlist = funlist3, grids = grids, seed = mm + 4452)
   group0 = rep(1:length(funlist3),each = 50)
   ng0 = length(unique(group0))
   
   ##### output matrix for indicators
   outputmat = matrix(0, 4, 3)
-  rownames(outputmat) = c("ng","ari","vi","lam")
-  colnames(outputmat) = c("fda","ind","js")
+  rownames(outputmat) = c("ng","ari","vi","lam") ### ng = 3
+  colnames(outputmat) = c("fda","npg","js")
+  
+  #### best ari and best vi and corresponding number of groups ###
+  bestari_vi = matrix(0,4,2)
+  rownames(bestari_vi) = c("bari","ari_ng","bvi","vi_ng")
+  colnames(bestari_vi) = c("fda","npg")
+  
   
   isemeanmat = matrix(0, length(group0), 3)
-  colnames(isemeanmat) = c("fda","ind","js")
+  colnames(isemeanmat) = c("fda","npg","js")
   
   confmat = matrix(0, 3, ng0*2) ## results based on the confusion matrix
   colnames(confmat) = paste0(rep(c("true","true_rate"),each=2),rep(1:ng0,2))
-  rownames(confmat) = c("fda","ind","js")
+  rownames(confmat) = c("fda","npg","js")
   
   
   
@@ -104,7 +111,7 @@ subfun = function(mm)
     
   }
   
-  ### maximum ari_fda_vec
+  ### maximum ari_fda_vec with 3 groups 
   
   inds1 = which(ari_fda_vec == max(ari_fda_vec[ng_fda_vec==3]))[1]
   
@@ -119,8 +126,10 @@ subfun = function(mm)
   
   
   ise_eig = ISEFDAeig(obj = res,grids = grids,eigenlist = eigenlist) ### ise of eigenfunction estimates 
-  mse_lamj = (res$lamj -  c(0.1,0.05))^2
+  mse_lamj = (res$lamj -  lam00)^2
   
+  bestari_vi[,1] = c(max(ari_fda_vec),ng_fda_vec[which.max(ari_fda_vec)],
+  min(vi_fda_vec), ng_fda_vec[which.min(vi_fda_vec)])
   
   #### If the true number of groups is selected, then calculate the following ####
   # true_fda = true_rate_fda = rep(0, ng0)
@@ -161,17 +170,17 @@ subfun = function(mm)
   index = t(combn(n,2));
   B_ini0 = update_B_ini(X, diagD, as.vector(dat$obs), n, gamma1, index, lambda0 = gamma1)
   
-  lamvec2 = seq(0.5,1.5,by=0.025)
+  lamvec2 = exp(seq(-0.6,0.3,length.out = 50))
   
   BIC2vec = rep(0, length(lamvec2))
-  ng_ind_vec = ari_ind_vec = vi_ind_vec = rep(0, length(lamvec2))
+  ng_npg_vec = ari_npg_vec = vi_npg_vec = rep(0, length(lamvec2))
   
   for(j in 1:length(lamvec2))
   {
     sol_finalj = prclust_admm(X, y=as.vector(dat$obs), diagD, B_ini0, index,
                               gamma1 = 0.005, gamma2 = lamvec2[j], 
                               theta=1, tau = 2, 
-                              n, p,  max_iter= 200,
+                              n, p,  max_iter= 100,
                               eps_abs=1e-4, eps_rel=1e-2)
     BIC2vec[j] = BIC2(obj = sol_finalj,dat$obs, dat$ind, X, basis, n, 0.005, D)
     
@@ -180,19 +189,19 @@ subfun = function(mm)
     #clustering membership
     cls_final = components(G_final);
     #number of clusters
-    ng_ind = cls_final$no
-    group_ind = cls_final$me
-    ari_ind= randIndex(group_ind, group0)
-    vi_ind = vi.dist(group_ind, group0)
+    ng_npg = cls_final$no
+    group_npg = cls_final$me
+    ari_npg= randIndex(group_npg, group0)
+    vi_npg= vi.dist(group_npg, group0)
     
-    ng_ind_vec[j] = ng_ind
-    ari_ind_vec[j] = ari_ind
-    vi_ind_vec[j] = vi_ind
+    ng_npg_vec[j] = ng_npg
+    ari_npg_vec[j] = ari_npg
+    vi_npg_vec[j] = vi_npg
     
   }
 
   
-  inds2 = which(ari_ind_vec == max(ari_ind_vec[ng_ind_vec==3]))[1]
+  inds2 = which(ari_npg_vec == max(ari_npg_vec[ng_npg_vec==3]))[1]
   
   sol_final = prclust_admm(X, y=as.vector(dat$obs), diagD, B_ini0, index,
                            gamma1 = 0.005, gamma2 = lamvec2[inds2], 
@@ -204,26 +213,29 @@ subfun = function(mm)
   #clustering membership
   cls_final = components(G_final);
   #number of clusters
-  ng_ind = cls_final$no
-  group_ind = cls_final$me
+  ng_npg = cls_final$no
+  group_npg = cls_final$membership
   
-  ari_ind= randIndex(group_ind, group0)
-  vi_ind = vi.dist(group_ind, group0)
-  ise_ind = ISEINDmean(t(sol_final$B), group0, grids,timerange, funlist3, 
+  ari_npg= randIndex(group_npg, group0)
+  vi_npg = vi.dist(group_npg, group0)
+  ise_npg = ISENPGmean(t(sol_final$B), group0, grids,timerange, funlist3, 
                        nknots = nknots, order = 4)
   
-  outputmat[,2] = c(ng_ind, ari_ind, vi_ind, lamvec2[inds2],0)
-  isemeanmat[,2] = ise_ind
+  outputmat[,2] = c(ng_npg_vec[inds2], ari_npg_vec[inds2], vi_npg_vec[inds2], lamvec2[inds2])
+  isemeanmat[,2] = ise_npg
+  
+  bestari_vi[,2] =  c(max(ari_npg_vec),ng_npg_vec[which.max(ari_npg_vec)],
+    min(vi_npg_vec), ng_npg_vec[which.min(vi_npg_vec)])
   
   
-  # true_ind = true_rate_ind = rep(0, ng0)
-  # if(ng_ind ==ng0)
+  # true_npg = true_rate_npg = rep(0, ng0)
+  # if(ng_npg ==ng0)
   # {
-  #   confusion_ind = table(group_ind,group0)
-  #   true_ind = diag(confusion_ind) ##  number of correct pairs
-  #   true_rate_ind = true_ind/colSums(confusion_ind)
+  #   confusion_npg = table(group_npg,group0)
+  #   true_npg = diag(confusion_npg) ##  number of correct pairs
+  #   true_rate_npg = true_npg/colSums(confusion_npg)
   # }
-  # confmat[2,]= c(true_ind, true_rate_ind)
+  # confmat[2,]= c(true_npg, true_rate_npg)
   
   
   #### J&S method  #####
@@ -239,7 +251,7 @@ subfun = function(mm)
   ari_js= randIndex(group_js, group0)
   vi_js = vi.dist(group_js, group0)
   ise_js = ISEJSmean(obj = fit.js,group0,group_js,grids,funlist = funlist3)
-  outputmat[,3] = c(ng_js, ari_js, vi_js,0,0)
+  outputmat[,3] = c(ng_js, ari_js, vi_js,0)
   isemeanmat[,3] = ise_js
   
   
@@ -254,7 +266,7 @@ subfun = function(mm)
   # confmat[3,] = c(true_js, true_rate_js)
   
   output = list(outputmat = outputmat, isemeanmat = isemeanmat, 
-                ise_eig = ise_eig, mse_lamj = mse_lamj)
+                ise_eig = ise_eig, mse_lamj = mse_lamj, bestari_vi = bestari_vi)
   return(output)
 }
 
@@ -265,8 +277,8 @@ subfun = function(mm)
 
 cl <- makeCluster(24)  
 registerDoParallel(cl)  
-resultcomp3 <- foreach(mm=1:120,
+resultcomp3_best <- foreach(mm=1:120,
                        .packages=c("flexclust","orthogonalsplinebasis","plyr","fda","Lclust","igraph","mcclust"),.errorhandling = "remove") %dopar%  subfun(mm)
 stopCluster(cl) 
-save(resultcomp3,file = "../result/resultcompgrids3.RData")
+save(resultcomp3_best,file = "../result/resultcompgrids3_best.RData")
 

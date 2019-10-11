@@ -52,7 +52,7 @@ ISEFDAeig = function(obj, grids, eigenlist)
 
 
 #### ISE mean for IND #####
-ISEINDmean = function(betaest, group0, grids, timerange, funlist, nknots =4, order = 4)
+ISENPGmean = function(betaest, group0, grids, timerange, funlist, nknots =4, order = 4)
 {
   bmx = bsplineS(grids, knots_eq3(timerange, k = order, m = nknots), norder = order)
   nobs = length(group0)

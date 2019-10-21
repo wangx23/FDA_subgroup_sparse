@@ -41,15 +41,20 @@ eigenlist = list(Vectorize(function(x){sqrt(2)*sin(2*pi*x)}),
 
 grids = seq(0,1, by = 0.001)
 
-# lamvec = exp(seq(-1.5,-0.9, length.out = 50))
+lamvec = exp(seq(-1.2,-0.9, length.out = 50))
+
+lam00 = c(0.3,0.2)
+sig200 = 0.2
+mvec00 = c(5, 10)
+ncl00 = 30
 # lamvec2 = exp(seq(-0.5,0.3,length.out = 50))
 
 subfun_best = function(mm, sig2, lam00 = c(0.1, 0.05), mvec = c(5,20), ncl= 50,
                        lamvec, lamvec2)
 {
-  dat = simdat2(sig2 = sig2,lamj = lam00,mvec = mvec,ncl = ncl,
+  dat = simdat2(sig2 = sig200,lamj = lam00,mvec = mvec00,ncl = ncl00,
                 funlist = funlist3, grids = grids, seed = mm + 4452)
-  group0 = rep(1:length(funlist3),each = ncl)
+  group0 = rep(1:length(funlist3),each = ncl00)
   ng0 = length(unique(group0))
 
   ##### output matrix for indicators
@@ -64,6 +69,25 @@ subfun_best = function(mm, sig2, lam00 = c(0.1, 0.05), mvec = c(5,20), ncl= 50,
 
   isemeanmat = matrix(0, length(group0), 3)
   colnames(isemeanmat) = c("fda","npg","js")
+  
+  
+  
+  #### J&S method  #####
+  set.seed(mm + 1058)
+  datlist = list(x = dat$obs,
+                 curve = dat$ind,
+                 timeindex = match(dat$time,grids))
+  
+  fit_js = fitfclust(data=datlist,q=7,h=2,p=8,K=3,maxit=30,grid=grids,plot=F,trace=F)
+  
+  group_js = fclust.pred(fit_js)$class.pred
+  ng_js = length(unique(group_js))
+  ari_js= randIndex(group_js, group0)
+  vi_js = vi.dist(group_js, group0)
+  ise_js = ISEJSmean(obj = fit_js,group0,group_js,grids,funlist = funlist3)
+  outputmat[,3] = c(ng_js, ari_js, vi_js,0)
+  isemeanmat[,3] = ise_js
+  
 
 
   ##### proposed algorithm ###
@@ -208,22 +232,7 @@ subfun_best = function(mm, sig2, lam00 = c(0.1, 0.05), mvec = c(5,20), ncl= 50,
                       min(vi_npg_vec), ng_npg_vec[which.min(vi_npg_vec)])
 
 
-  #### J&S method  #####
-
-  datlist = list(x = dat$obs,
-                 curve = dat$ind,
-                 timeindex = match(dat$time,grids))
-
-  fit.js = fitfclust(data=datlist,q=7,h=2,p=8,K=3,maxit=30,grid=grids,plot=F,trace=F)
-
-  group_js = fclust.pred(fit.js)$class.pred
-  ng_js = length(unique(group_js))
-  ari_js= randIndex(group_js, group0)
-  vi_js = vi.dist(group_js, group0)
-  ise_js = ISEJSmean(obj = fit.js,group0,group_js,grids,funlist = funlist3)
-  outputmat[,3] = c(ng_js, ari_js, vi_js,0)
-  isemeanmat[,3] = ise_js
-
+ 
 
   output = list(outputmat = outputmat, isemeanmat = isemeanmat,
                 ise_eig = ise_eig, mse_lamj = mse_lamj, bestari_vi = bestari_vi)

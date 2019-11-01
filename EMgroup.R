@@ -129,7 +129,7 @@ EMgroup = function(ind, tm, y, knots, group0, P, betam0, boundary = c(0,1),
     # update theta and lamj
     Sigma = Sigma/n
     M0 = theta %*% Sigma %*%t(theta)
-    decompm = eigen(M0)
+    decompm = eigen(M0, symmetric = TRUE)
     lamj = decompm$values[1:P]
     theta = decompm$vectors[,1:P,drop=FALSE]
     theta = apply(theta,2,max2pos)

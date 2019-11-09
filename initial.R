@@ -72,11 +72,11 @@ gcvi = function(yi, Bmi, Imp, ni, lam1)
 
 
 ###### initial value based on the difference matrix #####
-
-ind = dat$ind
-tm = dat$time
-y = dat$obs
-knots = seq(0,1,length.out = 5)[2:4]
+# 
+# ind = dat$ind
+# tm = dat$time
+# y = dat$obs
+# knots = seq(0,1,length.out = 5)[2:4]
 
 initialcoef2 = function(ind, tm, y, knots, boundary = c(0,1), lam = 0.001)
 {

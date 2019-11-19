@@ -1,4 +1,5 @@
 ###### a function use Peng, J. and Paul, D. (2009) newton method and ADMM algorithm ###
+#### with common coefficients ######
 
 ## ind is the subject ID
 ## tm is the time
@@ -26,22 +27,22 @@ source("revisedadmm.R")
 source("getgroup.R")
 
 
-boundary = c(0,1)
-nu = 1
-gam = 3
-maxiter = 500
-tolabs = 1e-4
-tolrel = 1e-2
-maxiterem = 50
-tolem = 1e-3
-K0 = 10
-lamv = seq(0,20,by = 0.5)[-1]
-sl.v=rep(0.5,10)
-max.step = 20
-tolnt=1e-3
-condtol=1e+10
-seed = 2118
-P =2
+# boundary = c(0,1)
+# nu = 1
+# gam = 3
+# maxiter = 500
+# tolabs = 1e-4
+# tolrel = 1e-2
+# maxiterem = 50
+# tolem = 1e-3
+# K0 = 10
+# lamv = seq(0,20,by = 0.5)[-1]
+# sl.v=rep(0.5,10)
+# max.step = 20
+# tolnt=1e-3
+# condtol=1e+10
+# seed = 2118
+# P =2
 
 FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
                        lam = 0.5, nu = 1, gam = 3, maxiter = 500, 
@@ -63,7 +64,7 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
   n = length(uind)
   npair = n*(n-1)/2
   
-
+  
   Bmlist = list()
   ylist = list()
   for(i in 1:n)
@@ -86,18 +87,20 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
     if(min(table(group0))>1){break}
   }
   
-  
   #group0 = group
   res0 = EMgroup(ind = ind,tm = tm, y = y, knots= knots, 
                  group0 = group0, P = P, betam0 = betam0, boundary = boundary,
                  maxiter = maxiterem, tol = tolem)
   
   alpm = res0$alpm
-
+  
   sig2 = res0$sig2
   theta = res0$theta
   lamj = res0$lamj
   betam = res0$alpm[group0,]
+  
+  
+  
   
   #### initial and matrix in ADMM ####
   
@@ -126,13 +129,13 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
     
     ## revised admm 
     resadmm = revisedadmm(Bmlist,ylist,n,p, npair,Dmat,deltamold, vm,
-                   lam, nu, gam,
-                   theta, lamj, sig2)
+                          lam, nu, gam,
+                          theta, lamj, sig2)
     betam = resadmm$betam
     deltam = resadmm$deltam
     betadiff = resadmm$betadiff
     vm = resadmm$vm
-
+    
     
     ### remove mean part ###
     bsmean = rep(0, ntotal)
@@ -141,18 +144,18 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
       indi = ind == uind[i]
       bsmean[indi] = Bmlist[[i]] %*% betam[i,]
     }
-
+    
     #### newton
     datasub = data.frame(ind = ind, obs = y - bsmean, time = tm) ## substract mean
     datalist = fpca.format(datasub)
-
+    
     ## auxillary of newton
     phiaux = apply(matrix(1:n),MARGIN=1,Phi.aux,Bmlist = Bmlist,datalist=datalist)
-
-
+    
+    
     newton.result = Newton.New(theta,phiaux,sqrt(sig2),lamj,datalist,n,sl.v,max.step,tolnt,condtol)
-
-
+    
+    
     step = newton.result[[7]]
     likevalue<-newton.result[[1]][step] # -2*loglikelihood over all observations
     theta = as.matrix(newton.result[[2]][,,step],p,P)
@@ -164,27 +167,27 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
     # error.c<-newton.result[[9]]
     
     #cv.score = CV(theta,phiaux,sig.up,lamj,datalist,n)
-
+    
     sig2 = sig.up^2
     
     norm1 = norm(betadiff,"F")
     norm2 = norm(deltam,"F")
-
+    
     tolpri = tolabs*sqrt(npair*p) + tolrel*max(norm1,norm2)
     toldual = tolabs*sqrt(n * p) + tolrel * norm(vm %*% Dmat, "F")
-
+    
     rm = norm(betadiff - deltam, "F")
     sm = nu * norm((deltam - deltamold)%*%Dmat, "F")
-
+    
     deltamold = deltam
-
+    
     niteration = niteration + 1
-
+    
     if(rm <= tolpri & sm <= toldual)
     {
       break
     }
-
+    
   }
   
   if(niteration == maxiter)
@@ -228,8 +231,8 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
   res =  list(betam = betam, betaest = betaest, betaavg = betaavg, knots = knotsall,
               obasisobj = obasisobj,
               meanfunest = meanfunest, groupest = groupest, likevalue = likevalue,
-          sig2 = sig2, theta = theta, lamj = lamj,
-          deltam = deltam, rm = rm, sm = sm,
-          tolpri = tolpri, toldual = toldual, niteration = niteration, flag = flag, ntotal = ntotal)
+              sig2 = sig2, theta = theta, lamj = lamj,
+              deltam = deltam, rm = rm, sm = sm,
+              tolpri = tolpri, toldual = toldual, niteration = niteration, flag = flag, ntotal = ntotal)
   return(res)
 }

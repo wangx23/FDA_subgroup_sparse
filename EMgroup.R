@@ -175,6 +175,15 @@ EMgroup = function(ind, tm, y, knots, group0, P, betam0, boundary = c(0,1),
   return(res)
 
 }
+
+
+
+
+############ EMgroup2 #######
+###### with common covariates included ######
+
+EMgroup2 = function(ind, x, tm, y, knots, group0, P, betam0, boundary = c(0,1),
+                    maxiter = 50, tol = 1e-3)
   
 
 

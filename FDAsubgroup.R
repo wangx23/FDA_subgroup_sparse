@@ -87,6 +87,7 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
   }
   
   
+  betam0 = do.call("rbind",by(betam0, group0, colMeans, simplify = TRUE))
   #group0 = group
   res0 = EMgroup(ind = ind,tm = tm, y = y, knots= knots, 
                  group0 = group0, P = P, betam0 = betam0, boundary = boundary,
@@ -98,6 +99,8 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
   theta = res0$theta
   lamj = res0$lamj
   betam = res0$alpm[group0,]
+  
+  
   
   #### initial and matrix in ADMM ####
   

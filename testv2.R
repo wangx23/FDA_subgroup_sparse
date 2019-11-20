@@ -30,3 +30,5 @@ inilist = initialv2(ind = datv2$ind,x = xm,tm = datv2$time,
 
 betam0 = inilist$betam
 eta0 = inilist$eta
+
+group0 = unique(datv2[,c("group","ind")])[,1]

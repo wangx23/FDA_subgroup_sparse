@@ -160,4 +160,4 @@ initialcoef2 = function(ind, tm, y, knots, boundary = c(0,1), lam = 0.001)
 
 
 
-##### initial values including the common covariates #####
+

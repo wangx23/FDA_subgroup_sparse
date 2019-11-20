@@ -26,22 +26,22 @@ source("revisedadmm.R")
 source("getgroup.R")
 
 
-boundary = c(0,1)
-nu = 1
-gam = 3
-maxiter = 500
-tolabs = 1e-4
-tolrel = 1e-2
-maxiterem = 50
-tolem = 1e-3
-K0 = 10
-lamv = seq(0,20,by = 0.5)[-1]
-sl.v=rep(0.5,10)
-max.step = 20
-tolnt=1e-3
-condtol=1e+10
-seed = 2118
-P =2
+# boundary = c(0,1)
+# nu = 1
+# gam = 3
+# maxiter = 500
+# tolabs = 1e-4
+# tolrel = 1e-2
+# maxiterem = 50
+# tolem = 1e-3
+# K0 = 10
+# lamv = seq(0,20,by = 0.5)[-1]
+# sl.v=rep(0.5,10)
+# max.step = 20
+# tolnt=1e-3
+# condtol=1e+10
+# seed = 2118
+# P =2
 
 FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
                        lam = 0.5, nu = 1, gam = 3, maxiter = 500, 
@@ -86,8 +86,6 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
     if(min(table(group0))>1){break}
   }
   
-  
-  betam0 = do.call("rbind",by(betam0, group0, colMeans, simplify = TRUE))
   #group0 = group
   res0 = EMgroup(ind = ind,tm = tm, y = y, knots= knots, 
                  group0 = group0, P = P, betam0 = betam0, boundary = boundary,

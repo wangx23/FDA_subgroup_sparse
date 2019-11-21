@@ -20,10 +20,10 @@
 ##condtol: tolerance to determine singularity in Newton in terms of condition number of the Hessian matrix
 
 
-source("initial.R")
+source("initialv2.R")
 source("fpcafunctions.R")
 source("EMgroup.R")
-source("revisedadmm.R")
+source("revisedadmmv2.R")
 source("getgroup.R")
 
 
@@ -44,7 +44,7 @@ source("getgroup.R")
 # seed = 2118
 # P =2
 
-FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
+FDAsubgroupv2 = function(ind, x, tm, y, P = 2, betam0, knots, boundary = c(0,1),
                        lam = 0.5, nu = 1, gam = 3, maxiter = 500, 
                        tolabs = 1e-5, tolrel = 1e-3,
                        maxiterem = 50, tolem = 1e-3, K0 = 10, 
@@ -67,11 +67,13 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
   
   Bmlist = list()
   ylist = list()
+  yresid = rep(0, ntotal)
   for(i in 1:n)
   {
     indi = ind == uind[i]
     Bmlist[[i]] = Bm[indi,]
     ylist[[i]] = y[indi]
+    yresid[indi] = y[indi] - Bm[indi,] %*% betam0[i,]
   }
   
   if(length(sl.v)<max.step){
@@ -87,8 +89,21 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
     if(min(table(group0))>1){break}
   }
   
+  
+  yresid = yresid - x %*% eta0 
+  
+  gamma = matrix(0, n, p) 
+  for(i in 1:n) {
+    indi = ind == uind[i]
+    tempy = yresid[indi]  
+    Bmi = Blist[[i]]
+    gamma[i,  ] = solve(t(Bmi) %*% Bmi + 0.01 * diag(p), t(Bmi)) %*% tempy
+  }	
+  
+  prcomp(gamma)$rotation[, 1:2]
+  
   #group0 = group
-  res0 = EMgroup(ind = ind,tm = tm, y = y, knots= knots, 
+  res0 = EMgroupv2(ind = ind,x = x,tm = tm, y = y, knots= knots, 
                  group0 = group0, P = P, betam0 = betam0, boundary = boundary,
                  maxiter = maxiterem, tol = tolem)
   

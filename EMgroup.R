@@ -351,5 +351,129 @@ EMgroupv2 = function(ind, x, tm, y, knots, group0, P, betam0, boundary = c(0,1),
 
 
 
+##### EM without updating the regression coefficents, that is only the covariance part ######
+
+EMcov = function(ind, tm, yresid, knots, P, boundary = c(0,1), maxiter = 50, tol=1e-3)
+{
+  ntotal = length(yresid)
+  knotsall = c(rep(boundary[1],4),knots, rep(boundary[2],4))
+  obasisobj = OBasis(knotsall)
+  Bm = evaluate(obasisobj,tm)  ## orthogonal
+  
+  p = ncol(Bm)
+  uind = unique(ind)
+  n = length(uind)
+  
+  ng = length(unique(group0))
+  
+  BtB = array(0, dim = c(p,p,n))
+  ylist = list()
+  Blist = list()
+  gamma = matrix(0, n, p) 
+  for(i in 1:n)
+  {
+    indi = ind == uind[i]
+    Bmi = Bm[indi,]
+    BtB[,,i] = t(Bmi) %*% Bmi
+    ylist[[i]] = yresid[indi]
+    Blist[[i]] = Bmi
+    gamma[i,  ] = solve(t(Bmi) %*% Bmi + pert * diag(p), t(Bmi)) %*% yresid[indi]
+  }
+  
+
+  theta = prcomp(gamma)$rotation[, 1:P]
+  theta = apply(theta,2,max2pos)
+  sig2 = 1
+  lamj = rep(1,P)
+  
+  mhat = matrix(0, n,P)
+  Vhat = array(0, dim = c(P,P,n))
+  Bty = matrix(0, n, p )
+  thetacross = array(0, dim = c(n,p,P))
+  residv = rep(0,n)
+  Btheta = rep(0,ntotal)
+  
+  niteration = 0
+  
+  for(m in 1:maxiter)
+  {
+    lamjold = lamj
+    thetaold = theta
+    sig2old = sig2
+    
+    Laminv = diag(1/lamj,P,P)
+    ### E step 
+    Sigma = matrix(0, P,P)
+    E2mat = array(0, dim = c(p,p, P))
+    
+    for(i in 1:n)
+    {
+      Bmi = Blist[[i]]
+      Vi = solve(t(theta) %*% BtB[,,i] %*% theta/sig2 + Laminv)
+      Btyi = t(Bmi) %*% ylist[[i]]
+      mi = 1/sig2 * Vi %*% t(theta) %*% Btyi
+      Sigma = Sigma + mi %*% t(mi) + Vi
+      residv[i] =  sum((ylist[[i]]  - Bmi %*%theta %*% mi)^2) + sum(diag(Bmi %*% theta %*% Vi %*% t(theta) %*% t(Bmi)))
+      
+      for(j in 1:P)
+      {
+        E2mat[,,j] = E2mat[,,j] + BtB[,,i] * (mi[j]^2 + Vi[j,j])
+        thetacross[i,,j] = BtB[,,i] %*% theta[,j]
+      }
+      mhat[i,] = mi
+      Vhat[,,i] = Vi
+      Bty[i,] = Btyi
+    }
+    
+    ## update theta ###
+    
+    for(j in 1:P)
+    {
+      temp = rep(0,p)
+      for(j1 in (1:P)[(1:P)!=j])
+      {
+        temp = temp + t(thetacross[,,j1]) %*% (mhat[,j1] * mhat[,j] + Vhat[j1,j,])
+      }
+      invEj = solve(E2mat[,,j]) 
+      BtyEj = t(Bty)%*% mhat[,j] - temp
+      theta[,j] = invEj %*% BtyEj
+    }
+    
+    sig2 = sum(residv)/ntotal
+    
+    # update theta and lamj
+    Sigma = Sigma/n
+    M0 = theta %*% Sigma %*%t(theta)
+    decompm = eigen(M0, symmetric = TRUE)
+    lamj = decompm$values[1:P]
+    theta = decompm$vectors[,1:P,drop=FALSE]
+    theta = apply(theta,2,max2pos)
+    
+    diffvalue = sqrt(sum((lamj - lamjold)^2) + sum((thetaold - theta)^2) + (sig2old - sig2)^2)
+    niteration = niteration + 1
+    if(diffvalue <= tol){break}
+    
+  }
+  
+  residf = rep(0,n)
+  for(i in 1:n)
+  {
+    residf[i] = sum((ylist[[i]]  -
+                       Blist[[i]] %*% theta %*% mhat[i,])^2)
+  }
+  
+  residsum = sum(residf)
+  
+  
+  # res = list(sig2 = sig2, theta = theta, alpm = alpm, diffvalue = diffvalue,
+  #        lamj = lamj, residsum = residsum, thetaold = thetaold, sig2old = sig2old,lamjold = lamjold, alpmold = alpmold,
+  #        niteration = niteration)
+  
+  res = list(sig2 = sig2, theta = theta, diffvalue = diffvalue,
+             lamj = lamj, residsum = residsum, niteration = niteration)
+  
+  return(res)
+}
+
 
 

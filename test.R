@@ -10,7 +10,7 @@ source("BICvalue.R")
 sig2 = 0.1
 lamj = c(0.2,0.1)
 mvec = c(5,20)
-ncl = 70
+ncl = 50
 
 #### another easier test simulated based on knots ####
 beta1 = rep(-1,6)

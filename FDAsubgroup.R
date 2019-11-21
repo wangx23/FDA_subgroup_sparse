@@ -26,26 +26,26 @@ source("revisedadmm.R")
 source("getgroup.R")
 
 
-# boundary = c(0,1)
-# nu = 1
-# gam = 3
-# maxiter = 500
-# tolabs = 1e-4
-# tolrel = 1e-2
-# maxiterem = 50
-# tolem = 1e-3
-# K0 = 10
-# lamv = seq(0,20,by = 0.5)[-1]
-# sl.v=rep(0.5,10)
-# max.step = 20
-# tolnt=1e-3
-# condtol=1e+10
-# seed = 2118
-# P =2
+boundary = c(0,1)
+nu = 1
+gam = 3
+maxiter = 500
+tolabs = 1e-4
+tolrel = 1e-2
+maxiterem = 50
+tolem = 1e-3
+K0 = 10
+lamv = seq(0,20,by = 0.5)[-1]
+sl.v=rep(0.5,10)
+max.step = 20
+tolnt=1e-3
+condtol=1e+10
+seed = 2118
+P =2
 
 #"EMgroup" or "EMcov"
 FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
-                       lam = 0.5, nu = 1, gam = 3, maxiter = 500, inital ="EMgroup",
+                       lam = 0.5, nu = 1, gam = 3, maxiter = 500, initial ="EMcov",
                        tolabs = 1e-5, tolrel = 1e-3,
                        maxiterem = 50, tolem = 1e-3, K0 = 10, 
                        sl.v=rep(0.5,10), max.step = 20, 
@@ -83,7 +83,7 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
   
   set.seed(seed)
   
-  if(inital == "EMgroup")
+  if(initial == "EMgroup")
   {
     ### initial value of theta, lamj and sig2
     repeat{
@@ -105,7 +105,7 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
   }
   
   
-  if(initial = "EMcov")
+  if(initial == "EMcov")
   {
     
     group0 = kmeans(betam0,K0)$cluster
@@ -122,7 +122,7 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
     sig2 = res0$sig2
     theta = res0$theta
     lamj = res0$lamj
-    betam = betam0
+    betam = alpm0[group0,]
   }
   
   

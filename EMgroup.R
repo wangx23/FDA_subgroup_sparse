@@ -353,7 +353,7 @@ EMgroupv2 = function(ind, x, tm, y, knots, group0, P, betam0, boundary = c(0,1),
 
 ##### EM without updating the regression coefficents, that is only the covariance part ######
 
-EMcov = function(ind, tm, yresid, knots, P, boundary = c(0,1), maxiter = 50, tol=1e-3)
+EMcov = function(ind, tm, yresid, knots, P, boundary = c(0,1), maxiter = 50, tol=1e-3, pert = 0.01)
 {
   ntotal = length(yresid)
   knotsall = c(rep(boundary[1],4),knots, rep(boundary[2],4))

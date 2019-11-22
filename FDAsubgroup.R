@@ -26,22 +26,22 @@ source("revisedadmm.R")
 source("getgroup.R")
 
 
-boundary = c(0,1)
-nu = 1
-gam = 3
-maxiter = 500
-tolabs = 1e-4
-tolrel = 1e-2
-maxiterem = 50
-tolem = 1e-3
-K0 = 10
-lamv = seq(0,20,by = 0.5)[-1]
-sl.v=rep(0.5,10)
-max.step = 20
-tolnt=1e-3
-condtol=1e+10
-seed = 2118
-P =2
+# boundary = c(0,1)
+# nu = 1
+# gam = 3
+# maxiter = 500
+# tolabs = 1e-4
+# tolrel = 1e-2
+# maxiterem = 50
+# tolem = 1e-3
+# K0 = 10
+# lamv = seq(0,20,by = 0.5)[-1]
+# sl.v=rep(0.5,10)
+# max.step = 20
+# tolnt=1e-3
+# condtol=1e+10
+# seed = 2118
+# P =2
 
 #"EMgroup" or "EMcov"
 FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
@@ -93,7 +93,7 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
     
     #group0 = group
     res0 = EMgroup(ind = ind,tm = tm, y = y, knots= knots, 
-                   group0 = group0, P = P, betam0 = betam0, boundary = boundary,
+                   group0 = group0, P = P, betam0 = betam0, method ="lm",boundary = boundary,
                    maxiter = maxiterem, tol = tolem)
     
     alpm = res0$alpm
@@ -103,6 +103,25 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
     lamj = res0$lamj
     betam = res0$alpm[group0,]
   }
+  
+  if(initial == "EMgroup2")  ###
+  {
+    ### initial value of theta, lamj and sig2
+
+    group0 = kmeans(betam0,K0)$cluster
+    #group0 = group
+    res0 = EMgroup(ind = ind,tm = tm, y = y, knots= knots, 
+                   group0 = group0, P = P, betam0 = betam0, method = "mean",boundary = boundary,
+                   maxiter = maxiterem, tol = tolem)
+    
+    alpm = res0$alpm
+    
+    sig2 = res0$sig2
+    theta = res0$theta
+    lamj = res0$lamj
+    betam = res0$alpm[group0,]
+  }
+  
   
   
   if(initial == "EMcov")
@@ -117,7 +136,7 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
       indi = ind == uind[i]
       yresid[indi] = ylist[[i]] - Bmlist[[i]]%*%alpm0[group0[i],]
     }
-    res0 = EMcov(ind = ind,tm = tm,yresid = yresid, knots = knots,P = P,
+    res0 = EMcov(ind = ind,tm = tm,yresid = yresid, group0 = group0, knots = knots,P = P,
                  boundary = boundary)
     sig2 = res0$sig2
     theta = res0$theta

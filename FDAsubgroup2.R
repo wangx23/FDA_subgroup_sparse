@@ -27,25 +27,28 @@ source("revisedadmmv2.R")
 source("getgroup.R")
 
 
-boundary = c(0,1)
-nu = 1
-gam = 3
-maxiter = 500
-tolabs = 1e-4
-tolrel = 1e-2
-maxiterem = 50
-tolem = 1e-3
-K0 = 10
-lamv = seq(0,20,by = 0.5)[-1]
-sl.v=rep(0.5,10)
-max.step = 20
-tolnt=1e-3
-condtol=1e+10
-seed = 2118
-P =2
+# boundary = c(0,1)
+# nu = 1
+# gam = 3
+# maxiter = 500
+# tolabs = 1e-4
+# tolrel = 1e-2
+# maxiterem = 50
+# tolem = 1e-3
+# K0 = 10
+# lamv = seq(0,20,by = 0.5)[-1]
+# sl.v=rep(0.5,10)
+# max.step = 20
+# tolnt=1e-3
+# condtol=1e+10
+# seed = 2118
+# P =2
+
+
+### 
 
 FDAsubgroupv2 = function(ind, x, tm, y, P = 2, betam0,eta0,
-                         knots, boundary = c(0,1),
+                         knots, boundary = c(0,1),initial = "EMgroup",
                        lam = 0.5, nu = 1, gam = 3, maxiter = 500, 
                        tolabs = 1e-5, tolrel = 1e-3,
                        maxiterem = 50, tolem = 1e-3, K0 = 10, 
@@ -89,11 +92,12 @@ FDAsubgroupv2 = function(ind, x, tm, y, P = 2, betam0,eta0,
   
   if(initial == "EMgroup")
   {
-    repeat{
-      group0 = kmeans(betam0,K0)$cluster
-      if(min(table(group0))>1){break}
-    }
+    # repeat{
+    #   group0 = kmeans(betam0,K0)$cluster
+    #   if(min(table(group0))>1){break}
+    # }
     
+    group0 = kmeans(betam0,K0)$cluster  ### shouldn't have singular problem since x is involved?, need to check 
     #group0 = group
     res0 = EMgroupv2(ind = ind,x = x,tm = tm, y = y, knots= knots, 
                      group0 = group0, P = P, betam0 = betam0, boundary = boundary,
@@ -109,7 +113,7 @@ FDAsubgroupv2 = function(ind, x, tm, y, P = 2, betam0,eta0,
   }
  
   
-  if(initial = "EMcov")
+  if(initial == "EMcov")
   {
     
     group0 = kmeans(betam0,K0)$cluster
@@ -123,7 +127,7 @@ FDAsubgroupv2 = function(ind, x, tm, y, P = 2, betam0,eta0,
     }
     yresid = yresid - x %*% eta0 
     
-    res0 = EMcov(ind = ind,tm = tm,yresid = yresid, knots = knots,P = P,
+    res0 = EMcov(ind = ind,tm = tm,yresid = yresid, group0 = group0, knots = knots,P = P,
                  boundary = boundary)
     
     sig2 = res0$sig2
@@ -267,7 +271,7 @@ FDAsubgroupv2 = function(ind, x, tm, y, P = 2, betam0,eta0,
   theta = theta[,indlam,drop = FALSE]
   
   res =  list(betam = betam, betaest = betaest, betaavg = betaavg, knots = knotsall,
-              etaest = etaest, obasisobj = obasisobj,
+              etaest = etanew, obasisobj = obasisobj,
               meanfunest = meanfunest, groupest = groupest, likevalue = likevalue,
               sig2 = sig2, theta = theta, lamj = lamj,
               deltam = deltam, rm = rm, sm = sm,

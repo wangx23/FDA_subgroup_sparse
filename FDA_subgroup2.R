@@ -27,24 +27,25 @@ source("revisedadmmv2.R")
 source("getgroup.R")
 
 
-# boundary = c(0,1)
-# nu = 1
-# gam = 3
-# maxiter = 500
-# tolabs = 1e-4
-# tolrel = 1e-2
-# maxiterem = 50
-# tolem = 1e-3
-# K0 = 10
-# lamv = seq(0,20,by = 0.5)[-1]
-# sl.v=rep(0.5,10)
-# max.step = 20
-# tolnt=1e-3
-# condtol=1e+10
-# seed = 2118
-# P =2
+boundary = c(0,1)
+nu = 1
+gam = 3
+maxiter = 500
+tolabs = 1e-4
+tolrel = 1e-2
+maxiterem = 50
+tolem = 1e-3
+K0 = 10
+lamv = seq(0,20,by = 0.5)[-1]
+sl.v=rep(0.5,10)
+max.step = 20
+tolnt=1e-3
+condtol=1e+10
+seed = 2118
+P =2
 
-FDAsubgroupv2 = function(ind, x, tm, y, P = 2, betam0, knots, boundary = c(0,1),
+FDAsubgroupv2 = function(ind, x, tm, y, P = 2, betam0,eta0,
+                         knots, boundary = c(0,1),
                        lam = 0.5, nu = 1, gam = 3, maxiter = 500, 
                        tolabs = 1e-5, tolrel = 1e-3,
                        maxiterem = 50, tolem = 1e-3, K0 = 10, 
@@ -60,6 +61,7 @@ FDAsubgroupv2 = function(ind, x, tm, y, P = 2, betam0, knots, boundary = c(0,1),
   Bm = evaluate(obasisobj,tm)  ## orthogonal
   
   p = ncol(Bm)
+  q = ncol(x)
   uind = unique(ind)
   n = length(uind)
   npair = n*(n-1)/2
@@ -67,13 +69,13 @@ FDAsubgroupv2 = function(ind, x, tm, y, P = 2, betam0, knots, boundary = c(0,1),
   
   Bmlist = list()
   ylist = list()
-  yresid = rep(0, ntotal)
+  xlist = list()
   for(i in 1:n)
   {
     indi = ind == uind[i]
     Bmlist[[i]] = Bm[indi,]
     ylist[[i]] = y[indi]
-    yresid[indi] = y[indi] - Bm[indi,] %*% betam0[i,]
+    xlist[[i]] = x[indi,]
   }
   
   if(length(sl.v)<max.step){
@@ -84,39 +86,53 @@ FDAsubgroupv2 = function(ind, x, tm, y, P = 2, betam0, knots, boundary = c(0,1),
   
   set.seed(seed)
   ### initial value of theta, lamj and sig2
-  repeat{
+  
+  if(initial == "EMgroup")
+  {
+    repeat{
+      group0 = kmeans(betam0,K0)$cluster
+      if(min(table(group0))>1){break}
+    }
+    
+    #group0 = group
+    res0 = EMgroupv2(ind = ind,x = x,tm = tm, y = y, knots= knots, 
+                     group0 = group0, P = P, betam0 = betam0, boundary = boundary,
+                     maxiter = maxiterem, tol = tolem)
+    
+    alpm = res0$alpm
+    
+    sig2 = res0$sig2
+    theta = res0$theta
+    lamj = res0$lamj
+    betam = res0$alpm[group0,]
+    
+  }
+ 
+  
+  if(initial = "EMcov")
+  {
+    
     group0 = kmeans(betam0,K0)$cluster
-    if(min(table(group0))>1){break}
+    alpm0 = do.call("rbind",by(betam0, group0, colMeans,simplify = TRUE))
+    
+    yresid = rep(0, ntotal)
+    for(i in 1:n)
+    {
+      indi = ind == uind[i]
+      yresid[indi] = ylist[[i]] - Bmlist[[i]]%*%alpm0[group0[i],]
+    }
+    yresid = yresid - x %*% eta0 
+    
+    res0 = EMcov(ind = ind,tm = tm,yresid = yresid, knots = knots,P = P,
+                 boundary = boundary)
+    
+    sig2 = res0$sig2
+    theta = res0$theta
+    lamj = res0$lamj
+    betam = alpm0[group0,]
   }
   
-  
-  yresid = yresid - x %*% eta0 
-  
-  gamma = matrix(0, n, p) 
-  for(i in 1:n) {
-    indi = ind == uind[i]
-    tempy = yresid[indi]  
-    Bmi = Blist[[i]]
-    gamma[i,  ] = solve(t(Bmi) %*% Bmi + 0.01 * diag(p), t(Bmi)) %*% tempy
-  }	
-  
-  prcomp(gamma)$rotation[, 1:2]
-  
-  #group0 = group
-  res0 = EMgroupv2(ind = ind,x = x,tm = tm, y = y, knots= knots, 
-                 group0 = group0, P = P, betam0 = betam0, boundary = boundary,
-                 maxiter = maxiterem, tol = tolem)
-  
-  alpm = res0$alpm
-  
-  sig2 = res0$sig2
-  theta = res0$theta
-  lamj = res0$lamj
-  betam = res0$alpm[group0,]
-  
-  
-  
-  
+
   #### initial and matrix in ADMM ####
   
   ### difference matrix
@@ -143,10 +159,11 @@ FDAsubgroupv2 = function(ind, x, tm, y, P = 2, betam0, knots, boundary = c(0,1),
     }
     
     ## revised admm 
-    resadmm = revisedadmm(Bmlist,ylist,n,p, npair,Dmat,deltamold, vm,
+    resadmm = revisedadmmv2(Bmlist,xlist, ylist,n,p, q, npair,Dmat,deltamold, vm,
                           lam, nu, gam,
                           theta, lamj, sig2)
     betam = resadmm$betam
+    etanew = resadmm$eta
     deltam = resadmm$deltam
     betadiff = resadmm$betadiff
     vm = resadmm$vm
@@ -161,7 +178,7 @@ FDAsubgroupv2 = function(ind, x, tm, y, P = 2, betam0, knots, boundary = c(0,1),
     }
     
     #### newton
-    datasub = data.frame(ind = ind, obs = y - bsmean, time = tm) ## substract mean
+    datasub = data.frame(ind = ind, obs = y - bsmean - x%*%etanew, time = tm) ## substract mean
     datalist = fpca.format(datasub)
     
     ## auxillary of newton
@@ -203,14 +220,20 @@ FDAsubgroupv2 = function(ind, x, tm, y, P = 2, betam0, knots, boundary = c(0,1),
       break
     }
     
+    # if(rm <= tolpri| sm <= toldual)
+    # {
+    #   break
+    # }
+    
+    
+    
   }
   
   if(niteration == maxiter)
   {
     flag = 1
   }
-  
-  
+
   
   groupest = getgroup(deltam, n)
   ugroupest = unique(groupest)
@@ -244,7 +267,7 @@ FDAsubgroupv2 = function(ind, x, tm, y, P = 2, betam0, knots, boundary = c(0,1),
   theta = theta[,indlam,drop = FALSE]
   
   res =  list(betam = betam, betaest = betaest, betaavg = betaavg, knots = knotsall,
-              obasisobj = obasisobj,
+              etaest = etaest, obasisobj = obasisobj,
               meanfunest = meanfunest, groupest = groupest, likevalue = likevalue,
               sig2 = sig2, theta = theta, lamj = lamj,
               deltam = deltam, rm = rm, sm = sm,

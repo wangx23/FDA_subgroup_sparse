@@ -86,7 +86,7 @@ subfun_best_js = function(mm, sig200, lam00, mvec00, ncl00,
   for(j in 1:length(lamvec))
   {
     resj = try(FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = 2,
-                           betam0 = betam0, knots = knots1,
+                           betam0 = betam0, knots = knots1, method = "EMgroup2",
                            lam = lamvec[j],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2))
     errorj = inherits(resj,"try-error")
     if(errorj)

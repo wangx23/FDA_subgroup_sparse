@@ -96,24 +96,24 @@ initialv2 = function(ind, x,  tm, y, knots, boundary = c(0,1), lam = 0.001)
   
   #### check the result with the original definition
   ### correct 
-  library(Matrix)
-  Xm <- matrix(0, ntotal, n0)
-  for(i in 1:n)
-  {
-    Xm[ind == uind[i],(p*(i-1) + 1) : (p*i)] = Bm[ind == uind[i],]
-  }
-
-  D <- matrix(0,n*(n-1)/2,n)
-  for(j in 1:(n-1))
-  {
-    indexj <- (n-1 + n-j+1)*(j-1)/2
-    indexvj <- indexj + (1:(n-j))
-    D[indexvj,j] <- 1
-    D[cbind(indexvj,(j+1):n)] <- -1
-  }
-  #
-  #
-  AtA <- t(D)%*%D %x% diag(p)
+  # library(Matrix)
+  # Xm <- matrix(0, ntotal, n0)
+  # for(i in 1:n)
+  # {
+  #   Xm[ind == uind[i],(p*(i-1) + 1) : (p*i)] = Bm[ind == uind[i],]
+  # }
+  # 
+  # D <- matrix(0,n*(n-1)/2,n)
+  # for(j in 1:(n-1))
+  # {
+  #   indexj <- (n-1 + n-j+1)*(j-1)/2
+  #   indexvj <- indexj + (1:(n-j))
+  #   D[indexvj,j] <- 1
+  #   D[cbind(indexvj,(j+1):n)] <- -1
+  # }
+  # #
+  # #
+  # AtA <- t(D)%*%D %x% diag(p)
   #
   # betam01 = solve(t(Xm)%*% Xm - t(Xm) %*% x %*% solve(t(x) %*%x) %*%t(x) %*%Xm + lam*AtA)%*%t(Xm)%*%Hy
   

@@ -158,11 +158,21 @@ funlist21 = list(Vectorize(function(x){4*(x-0.5)^2 + 1}),
 
 eigenlist21 = list(Vectorize(function(x){sqrt(2)*sin(pi*x)}),
                    Vectorize(function(x){ sqrt(2)*cos(pi*x)}))
-eta00 = c(1,2)
-lam00 = c(0.15,0.1)
-sig200 = 0.04
-mvec00 = c(20, 30)
-ncl00 = 50
+# eta00 = c(1,2)
+# lam00 = c(0.15,0.1)
+# sig200 = 0.04
+# mvec00 = c(20, 30)
+# ncl00 = 50
+# 
+# subfun_best_fda2(1, eta00 = c(1,2),sig200 = 0.04,lam00 = c(0.1,0.05),mvec00 = c(10,30),ncl00 = 50,lamvec = lamvec,
+#                  funlist = funlist21,eigenlist = eigenlist21)
 
-subfun_best_fda2(1, eta00 = c(1,2),sig200 = 0.04,lam00 = c(0.1,0.05),mvec00 = c(10,30),ncl00 = 50,lamvec = lamvec,
-                 funlist = funlist21,eigenlist = eigenlist21)
+
+#### parallel ####
+library(doParallel)
+cl <- makeCluster(18)  
+registerDoParallel(cl)  
+outputfda2_test = foreach(mm=1:50,
+                       .packages=c("flexclust","orthogonalsplinebasis","plyr","fda","Lclust","igraph","mcclust"),.errorhandling = "remove") %dopar%  subfun_best_fda2(mm, eta00 = c(1,2),sig200 = 0.04,lam00 = c(0.1,0.05),mvec00 = c(10,30),ncl00 = 50,lamvec = lamvec,funlist = funlist21,eigenlist = eigenlist21)
+stopCluster(cl) 
+save(outputfda2_test, file = "../result/outputfda2_test.RData")

@@ -111,8 +111,7 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
     group0 = kmeans(betam0,K0)$cluster
     #group0 = group
     res0 = EMgroup(ind = ind,tm = tm, y = y, knots= knots, 
-                   group0 = group0, P = P, betam0 = betam0, method = "mean",boundary = boundary,
-                   maxiter = maxiterem, tol = tolem)
+                   group0 = group0, P = P, betam0 = betam0, method = "mean",boundary = boundary,maxiter = maxiterem, tol = tolem)
     
     alpm = res0$alpm
     

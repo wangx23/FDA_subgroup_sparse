@@ -15,8 +15,8 @@ source("BICvalue.R")
 source("fclust2.R")
 source("IMSE.R")
 
-library(plyr);
-library(fda);#bspline basis
+# library(plyr);
+# library(fda);#bspline basis
 
 
 #### Kjs is a vector #####
@@ -35,11 +35,10 @@ subfun_best_js = function(mm, sig200, lam00, mvec00, ncl00,
   colnames(outputmat) = c("fda","js")
   
   
-  isemeanmat = matrix(0, length(group0), 2)
-  colnames(isemeanmat) = c("fda","js")
+  # isemeanmat = matrix(0, length(group0), 2)
+  # colnames(isemeanmat) = c("fda","js")
   
-  
-  
+
   #### J&S method  #####
   set.seed(mm + 1058)
   datlist = list(x = dat$obs,
@@ -72,9 +71,9 @@ subfun_best_js = function(mm, sig200, lam00, mvec00, ncl00,
 
   ##### proposed algorithm ###
   knots1 = seq(0,1,length.out = 5)[2:4]
-  betam0 = initialcoef(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1,
-                       lamv =seq(0,20,by = 0.5)[-1])
-  #betam0 = initialcoef2(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1)
+  #betam0 = initialcoef(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1,
+  #                     lamv =seq(0,20,by = 0.5)[-1])
+  betam0 = initialcoef2(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1,lam = 0.001)
 
   BICfda = rep(0,length(lamvec))
   ng_fda_vec = ari_fda_vec = vi_fda_vec = rep(-99, length(lamvec))
@@ -86,7 +85,7 @@ subfun_best_js = function(mm, sig200, lam00, mvec00, ncl00,
   for(j in 1:length(lamvec))
   {
     resj = try(FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = 2,
-                           betam0 = betam0, knots = knots1, method = "EMgroup2",
+                           betam0 = betam0, knots = knots1, initial = "EMgroup2",
                            lam = lamvec[j],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2))
     errorj = inherits(resj,"try-error")
     if(errorj)
@@ -114,14 +113,14 @@ subfun_best_js = function(mm, sig200, lam00, mvec00, ncl00,
                     betam0 = betam0, knots = knots1,
                     lam = lamvec[inds1],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2,K0 = 10)
 
-  ise_fda = ISEFDAmean(obj = res,group0, grids = grids,funlist = funlist)
-
-  outputmat[,1] = c(ng_fda_vec[inds1], ari_fda_vec[inds1], vi_fda_vec[inds1], lamvec[inds1])
-  isemeanmat[,1] = ise_fda
+  # ise_fda = ISEFDAmean(obj = res,group0, grids = grids,funlist = funlist)
+  # 
+  # outputmat[,1] = c(ng_fda_vec[inds1], ari_fda_vec[inds1], vi_fda_vec[inds1], lamvec[inds1])
+  # isemeanmat[,1] = ise_fda
   #
   #
-  ise_eig = ISEFDAeig(obj = res,grids = grids,eigenlist = eigenlist) ### ise of eigenfunction estimates
-  mse_lamj = (res$lamj -  lam00)^2
+  # ise_eig = ISEFDAeig(obj = res,grids = grids,eigenlist = eigenlist) ### ise of eigenfunction estimates
+  # mse_lamj = (res$lamj -  lam00)^2
   # # # 
   # # 
   # # 
@@ -161,12 +160,6 @@ for(mm  in 1:10)
 
 
 
-
-
-res1 = subfun_best_js(4,sig200 = 0.1, lam00 = c(0.2,0.1), mvec00 = c(20,30), ncl00 = 50,
-                      lamvec, funlist = funlist31, eigenlist = eigenlist31, Kjs = 3)
-res1$outputmat
-
 #### another set of mean functions #####
 
 lamvec = seq(0.23,0.32, by= 0.01)
@@ -179,20 +172,15 @@ ncl00 = 50
 funlist21 = list(Vectorize(function(x){4*(x-0.5)^2 + 1}),
                 Vectorize(function(x){2.5*exp(-25*(x-0.25)^2) + 2*exp(-50*(x-0.75)^2)}))
 
-
 eigenlist21 = list(Vectorize(function(x){sqrt(2)*sin(pi*x)}),
                  Vectorize(function(x){ sqrt(2)*cos(pi*x)}))
 
-res2 = subfun_best_js(4,sig200 = 0.01, lam00 = c(0.1,0.05), mvec00 = c(20,50),ncl00 = 50,lamvec, 
-                      funlist = funlist21, eigenlist = eigenlist21, Kjs = 2, hjs = 1)
-res2$outputmat
 
 testari = matrix(0,10,2)
 testng = matrix(0,10,2)
 for(mm  in 1:10)
 {
-  res2 = subfun_best_js(mm + 20,sig200 = 0.5, lam00 = c(0.4,0.3), mvec00 = c(20,30),ncl00 = 50,lamvec, 
-                        funlist = funlist21, eigenlist = eigenlist21, Kjs = 2)
+  res2 = subfun_best_js(mm + 20,sig200 = 0.1, lam00 = c(0.2,0.1), mvec00 = c(10,30),ncl00 = 50,c(0.26,0.27), funlist = funlist21, eigenlist = eigenlist21, Kjs = 2)
   testng[mm,] = res2$outputmat[1,]
   testari[mm,]= res2$outputmat[2,]
   print(mm)

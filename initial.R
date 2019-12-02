@@ -71,7 +71,7 @@ gcvi = function(yi, Bmi, Imp, ni, lam1)
 
 
 
-###### initial value based on the difference matrix #####
+###### initial value based on the difference (Laplacian) matrix #####
 # 
 # ind = dat$ind
 # tm = dat$time
@@ -158,6 +158,63 @@ initialcoef2 = function(ind, tm, y, knots, boundary = c(0,1), lam = 0.001)
   
 }
 
+
+####### initial value based on Laplacian matrix for model with x grouping #####
+## assume that the number of rows of x is the same as the length of y 
+
+initialcoefx = function(ind, tm, x, y, knots, boundary = c(0,1), lam = 0.01)
+{
+  ntotal = length(y)
+  knotsall = c(rep(boundary[1],4),knots, rep(boundary[2],4))
+  obasisobj = OBasis(knotsall)
+  Bm = evaluate(obasisobj,tm)  ## orthogonal
+  Bm = cbind(x, Bm)
+  
+  
+  ### ni for each subject ###
+  uind = unique(ind)
+  n = length(uind)
+  nvec = rep(0,n)
+  for(i in 1:n)
+  {
+    nvec[i] = sum(ind==uind[i])
+  }
+  
+  p = ncol(Bm)
+  
+  np = n*p
+  Ip = 1/lam*diag(p)
+  nIp = lam*n*diag(p)
+  
+  DB = matrix(0, p, p)
+  AB = matrix(0, np, p)
+  matinv = matrix(0, np, np)
+  Bty = rep(0,np)
+  
+  idp1 = 1
+  idp2 = p
+  for(i in 1:n)
+  {
+    Bmi = Bm[ind == uind[i],,drop = FALSE]
+    ni = nrow(Bmi)
+    
+    mati = solve(t(Bmi)%*% Bmi + nIp)
+    DB = DB + mati
+    AB[idp1:idp2,] = mati
+    matinv[idp1:idp2,idp1:idp2] = mati
+    Bty[idp1:idp2] = t(Bmi) %*% y[ind == uind[i]]
+    
+    idp1 = idp1 + p
+    idp2 = idp2 + p
+  }
+  
+  IB = solve(Ip - DB)
+  
+  matinv = matinv + AB %*% IB %*% t(AB)
+  
+  betam0 = matrix(matinv%*%Bty,n,p,byrow= TRUE)
+  return(betam0)
+}
 
 
 

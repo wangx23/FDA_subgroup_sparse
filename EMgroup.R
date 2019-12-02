@@ -21,10 +21,12 @@ max2pos = function(x)
 }
 
 
-#### add one more argument, use lm fit or not to get alpha
+#### add one more argument, use lm fit or not to get alpha 
 # method: "lm" fit lm to obtain group coefficient, could have singular problem
 # method: "mean", calculate group mean
-EMgroup = function(ind, tm, y, knots, group0, P, betam0, method = "lm",boundary = c(0,1),
+# x grouping, the number of rows of x is the same as the length of y
+EMgroup = function(ind, tm, y, knots, group0, P, betam0, method = "lm",
+                   boundary = c(0,1),
                    maxiter = 50, tol = 1e-3)
 {
   
@@ -32,6 +34,7 @@ EMgroup = function(ind, tm, y, knots, group0, P, betam0, method = "lm",boundary 
   knotsall = c(rep(boundary[1],4),knots, rep(boundary[2],4))
   obasisobj = OBasis(knotsall)
   Bm = evaluate(obasisobj,tm)  ## orthogonal
+  
   
   p = ncol(Bm)
   uind = unique(ind)
@@ -367,7 +370,8 @@ EMgroupv2 = function(ind, x, tm, y, knots, group0, P, betam0, boundary = c(0,1),
 
 ##### EM without updating the regression coefficents, that is only the covariance part ######
 
-EMcov = function(ind, tm, yresid, group0, knots, P, boundary = c(0,1), maxiter = 50, tol=1e-3, pert = 0.01)
+EMcov = function(ind, tm, yresid, group0, knots, P, boundary = c(0,1), 
+                 maxiter = 50, tol=1e-3, pert = 0.01)
 {
   ntotal = length(yresid)
   knotsall = c(rep(boundary[1],4),knots, rep(boundary[2],4))

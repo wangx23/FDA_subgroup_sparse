@@ -66,14 +66,14 @@ subfun_best_js = function(mm, sig200, lam00, mvec00, ncl00,
   vi_js = vi.dist(group_js, group0)
   ise_js = ISEJSmean(obj = fit_js,group0,group_js,grids,funlist = funlist)
   outputmat[,2] = c(ng_js, ari_js, vi_js,0)
-  isemeanmat[,2] = ise_js
+  # isemeanmat[,2] = ise_js
   
 
   ##### proposed algorithm ###
   knots1 = seq(0,1,length.out = 5)[2:4]
-  #betam0 = initialcoef(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1,
-  #                     lamv =seq(0,20,by = 0.5)[-1])
-  betam0 = initialcoef2(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1,lam = 0.001)
+  betam0 = initialcoef(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1,
+                     lamv =0.01)
+  betam0 = initialcoef2(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1,lam = 0.01)
 
   BICfda = rep(0,length(lamvec))
   ng_fda_vec = ari_fda_vec = vi_fda_vec = rep(-99, length(lamvec))
@@ -81,17 +81,18 @@ subfun_best_js = function(mm, sig200, lam00, mvec00, ncl00,
   #
   #
   # ### fixed P = 2
-  #betamj = betam0
+  betamj = betam0
   for(j in 1:length(lamvec))
   {
     resj = try(FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = 2,
-                           betam0 = betam0, knots = knots1, initial = "EMgroup2",
+                           betam0 = betamj, knots = knots1, initial = "EMgroup2",
                            lam = lamvec[j],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2))
     errorj = inherits(resj,"try-error")
     if(errorj)
     {
       BICfda[j] = 99999
     }else{
+      betamj = resj$betam
       BICfda[j] = BICvalue(resj)
       group_fdaj = resj$groupest
       ng_fdaj = length(unique(group_fdaj))
@@ -109,13 +110,17 @@ subfun_best_js = function(mm, sig200, lam00, mvec00, ncl00,
 
   inds1 = which(ari_fda_vec == max(ari_fda_vec))[1]
   #
-  res = FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = 2,
-                    betam0 = betam0, knots = knots1,
-                    lam = lamvec[inds1],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2,K0 = 10)
-
-  # ise_fda = ISEFDAmean(obj = res,group0, grids = grids,funlist = funlist)
+  # res = FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = 2,
+  #                   betam0 = betam0, knots = knots1,initial = "EMgroup2",
+  #                   lam = lamvec[inds1],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2,K0 = 10)
   # 
-  # outputmat[,1] = c(ng_fda_vec[inds1], ari_fda_vec[inds1], vi_fda_vec[inds1], lamvec[inds1])
+  # res = FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = 2,
+  #                   betam0 = betam0, knots = knots1,initial = "EMgroup2",
+  #                   lam = 0.255,maxiter = 50,tolabs = 1e-4,tolrel = 1e-2,K0 = 10)
+
+  ise_fda = ISEFDAmean(obj = res,group0, grids = grids,funlist = funlist)
+
+  outputmat[,1] = c(ng_fda_vec[inds1], ari_fda_vec[inds1], vi_fda_vec[inds1], lamvec[inds1])
   # isemeanmat[,1] = ise_fda
   #
   #
@@ -125,10 +130,11 @@ subfun_best_js = function(mm, sig200, lam00, mvec00, ncl00,
   # # 
   # # 
   # 
-  output = list(outputmat = outputmat, isemeanmat = isemeanmat,
-                ise_eig = ise_eig, mse_lamj = mse_lamj)
+  # output = list(outputmat = outputmat, isemeanmat = isemeanmat,
+  #               ise_eig = ise_eig, mse_lamj = mse_lamj)
   
  # output = list(outputmat = outputmat, isemeanmat = isemeanmat)
+  output = list(outputmat = outputmat)
   return(output)
 }
 
@@ -145,14 +151,15 @@ eigenlist31 = list(Vectorize(function(x){sqrt(2)*sin(2*pi*x)}),
                  Vectorize(function(x){ sqrt(2)*cos(2*pi*x)}))
 
 grids = seq(0,1, by = 0.001)
-lamvec = seq(0.23,0.32, by= 0.01)
+lamvec = seq(0.25,0.35, by= 0.01)
 
 testari = matrix(0,10,2)
 testng = matrix(0,10,2)
 for(mm  in 1:10)
 {
-  res2 = subfun_best_js(mm + 20,sig200 = 0.05, lam00 = c(0.3,0.2), mvec00 = c(10,20),ncl00 = 50,lamvec, 
-                        funlist = funlist31, eigenlist = eigenlist31, Kjs = 2:6)
+  res2 = subfun_best_js(mm + 20,sig200 = 0.1, lam00 = c(0.2,0.1), 
+                        mvec00 = c(10,30),ncl00 = 50,lamvec, 
+                        funlist = funlist31, eigenlist = eigenlist31, Kjs = 3)
   testng[mm,] = res2$outputmat[1,]
   testari[mm,]= res2$outputmat[2,]
   print(mm)
@@ -176,11 +183,11 @@ eigenlist21 = list(Vectorize(function(x){sqrt(2)*sin(pi*x)}),
                  Vectorize(function(x){ sqrt(2)*cos(pi*x)}))
 
 
-testari = matrix(0,10,2)
-testng = matrix(0,10,2)
-for(mm  in 1:10)
+testari = matrix(0,5,2)
+testng = matrix(0,5,2)
+for(mm  in 1:5)
 {
-  res2 = subfun_best_js(mm + 20,sig200 = 0.1, lam00 = c(0.2,0.1), mvec00 = c(10,30),ncl00 = 50,c(0.26,0.27), funlist = funlist21, eigenlist = eigenlist21, Kjs = 2)
+  res2 = subfun_best_js(mm + 20,sig200 = 0.1, lam00 = c(0.2,0.1), mvec00 = c(20,30),ncl00 = 50,lamvec = lamvec, funlist = funlist21, eigenlist = eigenlist21, Kjs = 2)
   testng[mm,] = res2$outputmat[1,]
   testari[mm,]= res2$outputmat[2,]
   print(mm)
@@ -204,7 +211,8 @@ testari = matrix(0,10,2)
 testng = matrix(0,10,2)
 for(mm  in 1:10)
 {
-  res2 = subfun_best_js(mm + 20,sig200 = 0.1, lam00 = c(0.3,0.2), mvec00 = c(10,20),ncl00 = 50,lamvec, 
+  res2 = subfun_best_js(mm + 20,sig200 = 0.1, lam00 = c(0.25,0.1),
+                        mvec00 = c(20,30),ncl00 = 50,lamvec, 
                         funlist = funlist32, eigenlist = eigenlist32, Kjs = 3)
   testng[mm,] = res2$outputmat[1,]
   testari[mm,]= res2$outputmat[2,]

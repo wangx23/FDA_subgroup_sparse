@@ -3,9 +3,13 @@
 #### etavec is the common coefficents 
 
 #etavec = runif(n = 2,1,2)
+
+
+#### time is randomly sampled from uniform distribution Unif(0,1)
+
+
 simdatv2 = function(xlist = list(nx = 2, meanx = 0, sdx = 1, eta),
                    sig2, lamj, mvec = c(5,20), ncl = 50, 
-                   grids = seq(0,1,by =0.001), 
                    funlist, eigenlist, seed = 2228)
 {
   set.seed(seed)
@@ -18,14 +22,21 @@ simdatv2 = function(xlist = list(nx = 2, meanx = 0, sdx = 1, eta),
   
   xmat = matrix(rnorm(ntotal*xlist$nx,xlist$meanx, xlist$sdx), nrow = ntotal)
   
+  # dat = data.frame(group = rep(group, nsub),
+  #                  x = xmat,
+  #                  ind = rep(1:(ngroup*ncl),nsub),
+  #                  time = sample(grids,ntotal,replace = TRUE),
+  #                  obs = rep(0, ntotal),
+  #                  mean = rep(0, ntotal))
+  
   dat = data.frame(group = rep(group, nsub),
                    x = xmat,
                    ind = rep(1:(ngroup*ncl),nsub),
-                   time = sample(grids,ntotal,replace = TRUE),
+                   time = runif(ntotal),
                    obs = rep(0, ntotal),
                    mean = rep(0, ntotal))
   
-  colnames(dat)[2:(xlist$nx+1)] = paste0("x",1:2)
+  colnames(dat)[2:(xlist$nx+1)] = paste0("x",1:xlist$nx)
   
   rande = sqrt(sig2) * rnorm(ntotal)
   

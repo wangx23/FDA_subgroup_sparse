@@ -73,7 +73,7 @@ subfun_best_js = function(mm, sig200, lam00, mvec00, ncl00,
   knots1 = seq(0,1,length.out = 5)[2:4]
   betam0 = initialcoef(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1,
                      lamv =0.01)
-  betam0 = initialcoef2(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1,lam = 0.01)
+  betam0 = initialcoef2(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1,lam = 0.001)
 
   BICfda = rep(0,length(lamvec))
   ng_fda_vec = ari_fda_vec = vi_fda_vec = rep(-99, length(lamvec))
@@ -85,7 +85,7 @@ subfun_best_js = function(mm, sig200, lam00, mvec00, ncl00,
   for(j in 1:length(lamvec))
   {
     resj = try(FDAsubgroup(ind = dat$ind,tm = dat$time,y = dat$obs,P = 2,
-                           betam0 = betamj, knots = knots1, initial = "EMgroup2",
+                           betam0 = betam0, knots = knots1, initial = "EMgroup2",
                            lam = lamvec[j],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2))
     errorj = inherits(resj,"try-error")
     if(errorj)

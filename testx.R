@@ -116,5 +116,14 @@ res05 = Spgrrx(indexy = datx0$ind,y = datx0$obs,x = cbind(x,Bm),weights = wts,
                betam0 = betam0041,lam = 0.6)
 plot(res05$group)
 
+betam006 = initialcoef(ind = datx0$ind,tm = datx0$time,y = datx0$obs,knots = knots,lam = 0.01)
 
+res06 = Spgrrx(indexy = datx0$ind,y = datx0$obs,x = Bm,weights = wts,
+               betam0 = betam006,lam = 0.4)
+
+refit06 = refitINDX(ind = datx0$ind, y = datx0$obs, tm = datx0$time,x = x,group0 = res06$group, knots =knots) 
+
+
+res07 = Spgrrx(indexy = datx0$ind,y = datx0$obs,x = cbind(x,Bm),weights = wts,
+               betam0 = refit06,lam = 0.6)
 

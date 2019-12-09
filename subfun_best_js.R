@@ -73,7 +73,7 @@ subfun_best_js = function(mm, sig200, lam00, mvec00, ncl00,
   knots1 = seq(0,1,length.out = 5)[2:4]
   betam0 = initialcoef(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1,
                      lamv =0.01)
-  betam0 = initialcoef2(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1,lam = 0.001)
+  betam0 = initialcoef2(ind = dat$ind,tm = dat$time,y = dat$obs,knots = knots1,lam = 0.01)
 
   BICfda = rep(0,length(lamvec))
   ng_fda_vec = ari_fda_vec = vi_fda_vec = rep(-99, length(lamvec))
@@ -187,7 +187,7 @@ testari = matrix(0,5,2)
 testng = matrix(0,5,2)
 for(mm  in 1:5)
 {
-  res2 = subfun_best_js(mm + 20,sig200 = 0.1, lam00 = c(0.2,0.1), mvec00 = c(20,30),ncl00 = 50,lamvec = lamvec, funlist = funlist21, eigenlist = eigenlist21, Kjs = 2)
+  res2 = subfun_best_js(mm + 20,sig200 = 0.04, lam00 = c(0.2,0.1), mvec00 = c(20,30),ncl00 = 50,lamvec = lamvec, funlist = funlist21, eigenlist = eigenlist21, Kjs = 2)
   testng[mm,] = res2$outputmat[1,]
   testari[mm,]= res2$outputmat[2,]
   print(mm)

@@ -63,7 +63,7 @@ library(orthogonalsplinebasis)
 xlist = list(nx = 2, meanx = 0, sdx = 1, etag = matrix(c(-2,-2,2,2),nrow = 2))
 
 datx0 = simdatx(xlist = xlist,
-               sig2 =0.01,lamj = c(0,0),mvec = c(30,30),ncl = 50,
+               sig2 =0.01,lamj = c(0,0),mvec = c(50,50),ncl = 50,
                funlist = funlist21, eigenlist = eigenlist21, seed = 20 + 4452)
 
 
@@ -71,7 +71,7 @@ ntotal = length(datx0$obs)
 knots = seq(0,1,length.out = 5)[2:4]
 knotsall = c(rep(0,4),knots, rep(1,4))
 obasisobj = OBasis(knotsall)
-Bm = evaluate(obasisobj,datx0$time)  ## orthogonal
+Bm = evaluate(obasisobj,datx0$time)[,-1]  ## orthogonal and include intercept 
 
 
 
@@ -80,9 +80,54 @@ x = as.matrix(datx0[,c("x1","x2")])
 wts = rep(1, 100*(100-1)/2)
 
 betam001 = cal_initialrx(indexy = datx0$ind,y = datx0$obs - datx0$meanx,x = Bm)
-res01 = Spgrrx(indexy = datx0$ind,y = datx0$obs - datx0$meanx,x = Bm,weights = wts,
-               betam0 = betam001,lam = 0.5)
+betam0011 = cal_initialrx(indexy = datx0$ind,y = datx0$obs,x = Bm[,-1]) ###
+betam0012 = cal_initialrx(indexy = datx0$ind,y = datx0$obs,x = cbind(1, Bm[,-1])) ###
+
+mean12 = rowSums(Bm[,-1] * betam0012[datx0$ind,-1])
+residuals12 = datx0$obs - mean12
+
+plot(betam0012[group00==1,1],unique(datx0$meanx)[group00==1] )
+abline(0,1)
+plot(betam0012[group00==2,1],unique(datx0$meanx)[group00==2] )
+abline(0,1)
+
+betam0012[group00==1,1] - unique(datx0$meanx)[group00==1]
+betam0012[group00==2,1] - unique(datx0$meanx)[group00==2]
+
+bx0 = cal_initialrx(indexy = datx0$ind,y = residuals12,x = x)
+
+bx01 = cal_initialrx(indexy = datx0$ind,y = residuals12,x = cbind(1,x))
+
+
+
+### estimate of x
+
+betam0011[,1]
+
+
+betam0013 = cal_initialrx(indexy = datx0$ind,y = datx0$obs - betam0011[datx0$ind,1],x = Bm) ###
+
+res03 = Spgrrx(indexy = datx0$ind,y = datx0$obs,x = cbind(x,Bm),weights = wts,
+               betam0 = cbind(xlist$etag[group00,] ,betam001),lam = 0.8)
+plot(res03$group)
+
+
+betam0012 = cal_initialrx(indexy = datx0$ind,y = datx0$obs - betam0011[datx0$ind,1],
+                          x = Bm)
+
+
+
+lm(datx0$obs[1:50] ~ Bm[1:50,-1])
+
+plot(rowSums(unique(x * xlist$etag[datx0$group,])), betam0011[,1])
+
+bx0 = cal_initialx(y = betam0011[,1],x = unique(x))
+
+
+res01 = Spgrrx(indexy = datx0$ind,y = datx0$obs - datx0$meanx,x = Bm[,-1],weights = wts,
+               betam0 = betam001,lam = 0.2)
 plot(res01$group)
+plot(res01$beta)
 
 betam002 = cal_initialx(y = datx0$obs - datx0$mean,x = x)
 res02 = Spgrx(y = datx0$obs - datx0$mean,x = x,weights = wts,
@@ -92,8 +137,18 @@ group00 = unique(datx0[,c("group","ind")])[,1]
 indsum = as.numeric(table(datx0$ind))
 
 res03 = Spgrrx(indexy = datx0$ind,y = datx0$obs,x = cbind(x,Bm),weights = wts,
-               betam0 = cbind(xlist$etag[group00,] + rnorm(100*2)*0.5,betam001),lam = 0.6)
+                betam0 = cbind(xlist$etag[group00,] ,betam0012),lam = 0.4)
 plot(res03$group)
+
+
+betam0011 = cal_initialrx(indexy = datx0$ind,y = datx0$obs,x = cbind(1,Bm))
+
+res031 = Spgrrx(indexy = datx0$ind,y = datx0$obs,x = cbind(x,Bm),weights = wts,
+               betam0 = cbind(bx0,betam0012),lam = 0.)
+plot(res031$group)
+
+
+
 
 
 betam000 = cbind(xlist$etag[group00,] + rnorm(100*2)*0.5,betam001)
@@ -127,3 +182,35 @@ refit06 = refitINDX(ind = datx0$ind, y = datx0$obs, tm = datx0$time,x = x,group0
 res07 = Spgrrx(indexy = datx0$ind,y = datx0$obs,x = cbind(x,Bm),weights = wts,
                betam0 = refit06,lam = 0.6)
 
+
+
+#### overall model 
+residuals = datx0$obs - lm(datx0$obs ~ 0 + cbind(x, Bm))$fitted
+
+### median for each ind
+
+plot(group00, as.numeric(by(residuals,datx0$ind,median)))
+
+boxplot(as.numeric(by(residuals,datx0$ind,median)) ~ group00)
+
+residm = as.numeric(by(residuals,datx0$ind,median))
+### initial groups based on residuals ###
+group1 = as.numeric(as.factor(cut(residm, quantile(residm, prob = 0:10 / 10, names = FALSE), include = TRUE)))
+
+betam008 = refitINDX(ind = datx0$ind,tm = datx0$time,x = x,y = datx0$obs,group0 = group1, knots = knots)
+
+res08 = Spgrrx(indexy = datx0$ind,y = datx0$obs,x = cbind(x,Bm),weights = wts,
+               betam0 = betam008,lam = 1)
+
+
+
+#### random ? 
+
+coef00 = coef(lm(datx0$obs ~ 0 + cbind(x, Bm)))
+betam009 = matrix(coef00,100,9, byrow = TRUE) + matrix(rnorm(100*9),100,9)*0.5
+res09 = Spgrrx(indexy = datx0$ind,y = datx0$obs,x = cbind(x,Bm),weights = wts,
+               betam0 = betam009,lam = 0.4)
+
+
+
+##### each group has its own spline part coefficients but the x part assuming the same?

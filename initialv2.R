@@ -91,7 +91,7 @@ initialv2 = function(ind, x,  tm, y, knots, boundary = c(0,1), lam = 0.001)
   eta0 = solve(t(x) %*% x) %*% t(x) %*%(y - Bbeta)
   
   
-  initlist = list(betam = betam0, eta = eta0)
+  initlist = list(betam = betam0, eta = eta0, bmx = Bbeta)
   return(initlist)
   
   #### check the result with the original definition

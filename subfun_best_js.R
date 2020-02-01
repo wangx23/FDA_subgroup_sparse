@@ -15,6 +15,7 @@ source("BICvalue.R")
 source("fclust2.R")
 source("IMSE.R")
 
+
 # library(plyr);
 # library(fda);#bspline basis
 
@@ -118,7 +119,7 @@ subfun_best_js = function(mm, sig200, lam00, mvec00, ncl00,
   #                   betam0 = betam0, knots = knots1,initial = "EMgroup2",
   #                   lam = 0.255,maxiter = 50,tolabs = 1e-4,tolrel = 1e-2,K0 = 10)
 
-  ise_fda = ISEFDAmean(obj = res,group0, grids = grids,funlist = funlist)
+  #ise_fda = ISEFDAmean(obj = res,group0, grids = grids,funlist = funlist)
 
   outputmat[,1] = c(ng_fda_vec[inds1], ari_fda_vec[inds1], vi_fda_vec[inds1], lamvec[inds1])
   # isemeanmat[,1] = ise_fda
@@ -157,8 +158,8 @@ testari = matrix(0,10,2)
 testng = matrix(0,10,2)
 for(mm  in 1:10)
 {
-  res2 = subfun_best_js(mm + 20,sig200 = 0.1, lam00 = c(0.2,0.1), 
-                        mvec00 = c(10,30),ncl00 = 50,lamvec, 
+  res2 = subfun_best_js(mm + 20,sig200 = 0.01, lam00 = c(0.05,0.05), 
+                        mvec00 = c(10,20),ncl00 = 50,lamvec, 
                         funlist = funlist31, eigenlist = eigenlist31, Kjs = 3)
   testng[mm,] = res2$outputmat[1,]
   testari[mm,]= res2$outputmat[2,]

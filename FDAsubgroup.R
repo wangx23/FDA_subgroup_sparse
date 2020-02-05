@@ -284,7 +284,7 @@ FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
 ##### with covariates grouping 
 
 ### the number of rows of x is the same as the length of y ###
-FDAXsubgroup = function(ind, tm, x, y, P = 2, betam0, knots, boundary = c(0,1),
+FDAXsubgroup = function(ind, tm, x, y, P = 2, betam0, group0 = NULL,knots, boundary = c(0,1),
                        lam = 0.5, nu = 1, gam = 3, maxiter = 500,
                        tolabs = 1e-5, tolrel = 1e-3,
                        maxiterem = 50, tolem = 1e-3, K0 = 10, 
@@ -325,8 +325,11 @@ FDAXsubgroup = function(ind, tm, x, y, P = 2, betam0, knots, boundary = c(0,1),
   }
   
   
-
-  group0 = kmeans(betam0, K0, 20)$cluster
+  if(is.null(group0))
+  {
+    group0 = kmeans(betam0, K0, 20)$cluster
+  }
+  
   alpm0 = do.call("rbind",by(betam0, group0, colMeans,simplify = TRUE))
   
   yresid = rep(0, ntotal)

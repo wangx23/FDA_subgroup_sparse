@@ -3,6 +3,7 @@ source("simdatx.R")
 source("initial.R")
 source("refitFDA.R")
 source("FDAsubgroup.R")
+library(flexclust)
 
 
 # funlist21 = list(Vectorize(function(x){4*(x-0.5)^2 + 1}),
@@ -71,7 +72,7 @@ library(orthogonalsplinebasis)
 xlist = list(nx = 2, meanx = 0, sdx = 1, etag = matrix(c(-2,-2,2,2),nrow = 2)) # two groups of x
 
 datx0 = simdatx(xlist = xlist,
-               sig2 =0.01,lamj = c(0,0),mvec = c(20,30),ncl = 50,
+               sig2 =0.01,lamj = c(0,0),mvec = c(5,20),ncl = 50,
                funlist = funlist21, eigenlist = eigenlist21, seed = 20 + 4452)
 group00 = unique(datx0[,c("group","ind")])[,1] ## true group 
 
@@ -89,7 +90,7 @@ wts = rep(1, 100*(100-1)/2) ## weights
 ### Bm includes the intercept ###
 ## if parametric part is known 
 betam001 = initiallap_mat(ind = datx0$ind,y = datx0$obs - datx0$meanx,xm = Bm, lam = 0.001)
-betam002 = initiallap_mat(ind = datx0$ind,y = datx0$obs,xm = cbind(1, Bm[,-1])) ### the mean term is an intercept 
+betam002 = initiallap_mat(ind = datx0$ind,y = datx0$obs,xm = cbind(1, Bm[,-1]), lam = 0.0001) ### the mean term is an intercept 
 betam003 = initial_indiv(ind = datx0$ind, y = datx0$obs, xm = cbind(1, Bm[,-1]), lam = 0) ## each has its own coefficients
 
 mean002 = rowSums(Bm[,-1] * betam002[datx0$ind,-1])
@@ -121,10 +122,11 @@ bx01 = initiallap_mat(ind = datx0$ind,y = residuals002,xm = cbind(1,x))
 betam01 = initiallapx(ind = datx0$ind,tm = datx0$time,x = x,y = datx0$obs,knots = knots,lam = 0.001)
 
 res01 = Spgrrx(indexy = datx0$ind,y = datx0$obs,x = cbind(x,Bm),weights = wts,
-               betam0 = betam01,lam = 0.5)
+               betam0 = betam01,lam = 0.65)
 
 plot(res01$beta)
 plot(res01$group)
+randIndex(group00, as.numeric(res01$group))
 
 
 
@@ -150,7 +152,32 @@ repeat{
 betam021 = refitINDX(ind = datx0$ind,tm = datx0$time,x = x,y = datx0$obs,group0 = groupb, knots = knots)
 
 res021 = Spgrrx(indexy = datx0$ind,y = datx0$obs,x = cbind(x,Bm),weights = wts,
-               betam0 = betam021,lam = 1)
+               betam0 = betam021,lam = 1.1)
+
+plot(res021$beta)
+plot(res021$group)
+randIndex(group00, as.numeric(res021$group))
+
+
+### use median? ####
+betam021median = apply(betam002[,-1], 1, median)
+groupb2 = as.numeric(cut(betam021median,quantile(betam021median,seq(0,1,by=0.1)), include.lowest = TRUE))
+betam022 = refitINDX(ind = datx0$ind,tm = datx0$time,x = x,y = datx0$obs,group0 = groupb2, knots = knots)
+
+res022 = Spgrrx(indexy = datx0$ind,y = datx0$obs,x = cbind(x,Bm),weights = wts,
+                betam0 = betam022,lam = 1.1)
+plot(res022$beta)
+plot(res022$group)
+randIndex(group00, as.numeric(res022$group), correct = FALSE)
+
+
+betam023 = betam022 + 1*matrix(rnorm(nrow(betam022)*ncol(betam022)),nrow(betam022),ncol(betam022))
+
+res023 = Spgrrx(indexy = datx0$ind,y = datx0$obs,x = cbind(x,Bm),weights = wts,
+                betam0 = betam023,lam = 1.7)
+plot(res023$beta)
+plot(res023$group)
+randIndex(group00, as.numeric(res023$group), correct = FALSE)
 
 
 #### median for each ind based on overall model####

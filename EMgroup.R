@@ -399,7 +399,7 @@ EMcov = function(ind, tm, yresid, group0, knots, P, boundary = c(0,1),
   }
   
 
-  theta = prcomp(gamma)$rotation[, 1:P]
+  theta = prcomp(gamma)$rotation[, 1:P,drop = FALSE]
   theta = apply(theta,2,max2pos)
   sig2 = 1
   lamj = rep(1,P)

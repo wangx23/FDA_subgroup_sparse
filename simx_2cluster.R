@@ -119,9 +119,9 @@ subfunx2cluster = function(mm){
           funlist = funlist, eigenlist = eigenlist,xlist= xlist)
 }
 
-cl <- makeCluster(2)  
+cl <- makeCluster(24)  
 registerDoParallel(cl)  
-result_x_2cluster <- foreach(mm=1:2,
+result_x_2cluster <- foreach(mm=1:100,
                        .packages=c("flexclust","orthogonalsplinebasis","plyr"),
                        .errorhandling = "remove") %dopar%subfunx2cluster(mm)
 stopCluster(cl) 

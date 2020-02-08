@@ -241,4 +241,6 @@ lm(datx0$obs[group2]~ 0+ cbind(x1[group2,], Bm[group2,]))
 lm(datx0$obs[datx0$ind==4]~ 0+ cbind(x1[datx0$ind==4,], Bm[datx0$ind==4,]))
 
 
+############ a new distance based on observations #########
+
 

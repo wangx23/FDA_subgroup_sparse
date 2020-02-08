@@ -125,4 +125,4 @@ result_x_2cluster <- foreach(mm=1:2,
                        .packages=c("flexclust","orthogonalsplinebasis","plyr"),
                        .errorhandling = "remove") %dopar%subfunx2cluster(mm)
 stopCluster(cl) 
-save(result_x_2cluster,file = "result/result_x_2cluster.RData")
+save(result_x_2cluster,file = "../result/result_x_2cluster.RData")

@@ -128,7 +128,7 @@ refitFDAX = function(ind, tm, x, y, P = 2, group0, knots, boundary = c(0,1),
   SEmat = matrix(sqrt(diag(covmat)), ng, p, byrow = TRUE)
   
   
-  outlist = list(alpha = alpm, theta = theta, sig2 = sig2, lamj = lamj, SEmat = SEmat)
+  outlist = list(alpha = alpm, theta = theta, sig2 = sig2, lamj = lamj, SEmat = SEmat,likevalue = likevalue)
   return(outlist)
   
   

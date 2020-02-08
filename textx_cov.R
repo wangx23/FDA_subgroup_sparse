@@ -249,3 +249,8 @@ restest = subfunx(1, sig200 = sig200, lam00 = lamj00, mvec00 = mvec00,
                   ncl00 = ncl00, lamvec = lamvec, 
                   funlist = funlist, eigenlist = eigenlist,xlist= xlist)
 t2 = Sys.time()
+
+xlist2 = list(nx = 2, meanx = 0, sdx = 1, etag = matrix(c(-0.5,-0.5,0.5,0.5),nrow = 2))
+restest2 = subfunx(10, sig200 = sig200, lam00 = lamj00, mvec00 = mvec00,
+                  ncl00 = ncl00, lamvec = lamvec, 
+                  funlist = funlist, eigenlist = eigenlist,xlist= xlist2)

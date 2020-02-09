@@ -5,9 +5,11 @@ source("refitFDA.R")
 source("FDAsubgroup.R")
 library(flexclust)
 library(doParallel)
+library(cluster)
 
 subfunx = function(mm, sig200, lam00, mvec00, ncl00,
-                   lamvec, funlist, eigenlist, xlist)
+                   lamvec, funlist, eigenlist, xlist,
+                   method = "median", K0 = 10)
 {
   
   datx = simdatx(xlist = xlist,
@@ -28,10 +30,59 @@ subfunx = function(mm, sig200, lam00, mvec00, ncl00,
   
   betam002 = initiallap_mat(ind = datx$ind,y = datx$obs,xm = cbind(1, Bm[,-1]), lam = 0.001) 
   
-  betam021median = apply(betam002[,-1], 1, median)
-  groupb2 = as.numeric(cut(betam021median,quantile(betam021median,seq(0,1,by=0.1)), include.lowest = TRUE))
+  if(method == "median")
+  {
+    betam021median = apply(betam002[,-1], 1, median)
+    groupb2 = as.numeric(cut(betam021median,quantile(betam021median,seq(0,1,by=0.1)), include.lowest = TRUE))
+  }
+  
+  if(method = "kmeans")
+  {
+    repeat{
+      groupb2 = kmeans(betam002[,-1],centers = K0, iter.max = 20)$cluster
+      if(min(table(groupb2))>1){break}
+    }
+  }
+  
+  if(method = "ydist")
+  {
+    ny = length(unique(datx$ind))
+    distmaty = matrix(0, ny, ny)
+    xm = unique(as.matrix(datx[,c("x1","x2")]))
+    for(i in 1:(ny-1))
+    {
+      tsi = sort(datx$time[datx$ind==i],index.return = TRUE)
+      tmi = tsi$x
+      yi = datx$obs[datx$ind==i][tsi$ix]
+      
+      sfuni = stepfun(tmi, c(yi,yi[length(yi)]),f=1, right = TRUE)
+      for(j in (i+1):ny)
+      {
+        tsj = sort(datx$time[datx$ind==j],index.return = TRUE)
+        tmj = tsj$x
+        yj = datx$obs[datx$ind==j][tsj$ix]
+        
+        sfunj = stepfun(tmj, c(yj,yj[length(yj)]),f=1, right = TRUE)
+        
+        funij = function(x)
+        {
+          (sfuni(x) - sfunj(x))^2
+        }
+        funij = Vectorize(funij)
+        
+        value1 = stats::integrate(funij,0,1, subdivisions = 500)$value
+        valueij = sqrt(value1) + sqrt(sum((xm[i,] - xm[j,])^2))
+        distmaty[i,j] = valueij
+      }
+    }
+    
+    distmaty = distmaty + t(distmaty)
+    groupb2 = pam(distmaty, K0, diss = TRUE)$clustering
+  }
+  
   res022 = refitFDAX(ind = datx$ind,tm = datx$time,x = x,y = datx$obs,group0 = groupb2, knots = knots)
   betam022 = res022$alpha[groupb2,]
+
   
   
   BICm = BICm2 = BICm3 = matrix(0,length(lamvec), 3)

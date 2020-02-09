@@ -21,7 +21,7 @@ lamj00 = c(0.2,0.1)
 
 mm = 1
 datx = simdatx(xlist = xlist,
-               sig2 = sig200,lamj = lamj00,mvec = c(10,20),ncl = 100,
+               sig2 = sig200,lamj = lamj00,mvec = c(5,20),ncl = 50,
                funlist = funlist21, eigenlist = eigenlist21, seed = 1 + 4452)
 
 ind = datx$ind
@@ -98,14 +98,30 @@ repeat{
   if(min(table(groupb))>1){break}
 }
 
-betam021 = refitFDAX(ind = datx$ind,tm = datx$time,x = x,y = datx$obs,group0 = groupb, knots = knots)
 
-res021 = Spgrrx(indexy = datx0$ind,y = datx0$obs,x = cbind(x,Bm),weights = wts,
-                betam0 = betam021,lam = 1.1)
+library(cluster)
+groupb1 = pam(x = betam002[,-1], k = 10,diss = FALSE)$clustering
+
+betam021 = refitFDAX(ind = datx$ind,tm = datx$time,x = x,y = datx$obs,group0 = groupb, knots = knots)$alpha[groupb,]
+
+betam0211 = refitFDAX(ind = datx$ind,tm = datx$time,x = x,y = datx$obs,group0 = groupb1, knots = knots)$alpha[groupb1,]
+
+
+res021 = FDAXsubgroup(ind = datx$ind,x = x, tm = datx$time,y = datx$obs,P = 2,
+                      betam0 = betam021,
+                      group0 = groupb,knots = knots, K0 = 10,max.step = 5,
+                      lam = 1.1,maxiter = 50,tolabs = 1e-4,tolrel = 1e-2)
+
+res0211 = FDAXsubgroup(ind = datx$ind,x = x, tm = datx$time,y = datx$obs,P = 2,
+                      betam0 = betam0211,
+                      group0 = groupb1,knots = knots, K0 = 10,max.step = 5,
+                      lam = 1.4,maxiter = 50,tolabs = 1e-4,tolrel = 1e-2)
 
 plot(res021$beta)
 plot(res021$group)
 randIndex(group00, as.numeric(res021$group))
+
+randIndex(group00, as.numeric(res0211$group))
 
 
 ### use median? ####
@@ -134,6 +150,44 @@ plot(res023$betam)
 plot(res023$group)
 randIndex(group00, as.numeric(res023$group), correct = FALSE)
 
+
+####define a new distance based on the values of y #####
+## a dist matrix ##
+ny = length(unique(datx$ind))
+distmaty = matrix(0, ny, ny)
+xm = unique(as.matrix(datx[,c("x1","x2")]))
+for(i in 1:(ny-1))
+{
+  tsi = sort(datx$time[datx$ind==i],index.return = TRUE)
+  tmi = tsi$x
+  yi = datx$obs[datx$ind==i][tsi$ix]
+  
+  sfuni = stepfun(tmi, c(yi,yi[length(yi)]),f=1, right = TRUE)
+  for(j in (i+1):ny)
+  {
+    tsj = sort(datx$time[datx$ind==j],index.return = TRUE)
+    tmj = tsj$x
+    yj = datx$obs[datx$ind==j][tsj$ix]
+    
+    sfunj = stepfun(tmj, c(yj,yj[length(yj)]),f=1, right = TRUE)
+    
+    funij = function(x)
+    {
+      (sfuni(x) - sfunj(x))^2
+    }
+    funij = Vectorize(funij)
+    
+    value1 = stats::integrate(funij,0,1, subdivisions = 500)$value
+    valueij = sqrt(value1) + sqrt(sum((xm[i,] - xm[j,])^2))
+    distmaty[i,j] = valueij
+  }
+}
+
+distmaty = distmaty + t(distmaty)
+
+library(cluster)
+groupb4 = pam(distmaty, 10, diss = TRUE)$clustering
+res024 = refitFDAX(ind = datx$ind,tm = datx$time,x = x,y = datx$obs,group0 = groupb4, knots = knots)
 
 ########### BIC ##########
 source("BICvalue.R")

@@ -36,7 +36,7 @@ subfunx = function(mm, sig200, lam00, mvec00, ncl00,
     groupb2 = as.numeric(cut(betam021median,quantile(betam021median,seq(0,1,by=0.1)), include.lowest = TRUE))
   }
   
-  if(method = "kmeans")
+  if(method == "kmeans")
   {
     repeat{
       groupb2 = kmeans(betam002[,-1],centers = K0, iter.max = 20)$cluster
@@ -44,7 +44,7 @@ subfunx = function(mm, sig200, lam00, mvec00, ncl00,
     }
   }
   
-  if(method = "ydist")
+  if(method == "ydist")
   {
     ny = length(unique(datx$ind))
     distmaty = matrix(0, ny, ny)

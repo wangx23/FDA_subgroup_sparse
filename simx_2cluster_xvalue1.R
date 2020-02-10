@@ -11,7 +11,7 @@ xlist = list(nx = 2, meanx = 0, sdx = 1, etag = matrix(c(-1,-1,1,1),nrow = 2))
 sig200 = 0.04
 lamj00 = c(0.2,0.1)
 mvec00 = c(10,20)
-ncl00 = 100
+ncl00 = 50
 lamvec = seq(0.2,2,by = 0.1)
 
 subfunx2cluster = function(mm){
@@ -20,13 +20,13 @@ subfunx2cluster = function(mm){
           funlist = funlist, eigenlist = eigenlist,xlist= xlist)
 }
 
-# cl <- makeCluster(24)  
-# registerDoParallel(cl)  
-# result_x_2cluster <- foreach(mm=1:100,
-#                              .packages=c("flexclust","orthogonalsplinebasis","plyr"),
-#                              .errorhandling = "remove") %dopar%subfunx2cluster(mm)
-# stopCluster(cl) 
-# save(result_x_2cluster,file = "../result/result_x_2cluster.RData")
+cl <- makeCluster(24)
+registerDoParallel(cl)
+result_x_2cluster <- foreach(mm=1:100,
+                             .packages=c("flexclust","orthogonalsplinebasis","plyr"),
+                             .errorhandling = "remove") %dopar%subfunx2cluster(mm)
+stopCluster(cl)
+save(result_x_2cluster,file = "../result/result_x_2cluster_ncl50.RData")
 
 subfunx2cluster2 = function(mm){
   subfunx(mm, sig200 = sig200, lam00 = lamj00, mvec00 = mvec00,
@@ -40,4 +40,4 @@ result_x_2cluster_ydist <- foreach(mm=1:100,
                              .packages=c("flexclust","orthogonalsplinebasis","plyr","cluster"),
                              .errorhandling = "remove") %dopar%subfunx2cluster(mm)
 stopCluster(cl)
-save(result_x_2cluster_ydist,file = "../result/result_x_2cluster_ydist.RData")
+save(result_x_2cluster_ydist,file = "../result/result_x_2cluster_ydist_ncl50.RData")

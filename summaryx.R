@@ -1,3 +1,5 @@
+load("~/Research/FDA_subgroup_sparse/result/result_x_2cluster_xvalue05.RData")
+load("~/Research/FDA_subgroup_sparse/result/result_x_2cluster.RData")
 ari_xvalue1 = rep(0,100)
 ari_xvalue05 = rep(0,100)
 lamest_xvalue1 = lamest_xvalue05 = matrix(0,100,2)
@@ -20,3 +22,7 @@ summary(lamest_xvalue05)
 
 summary(Pest_xvalue1)
 summary(Pest_xvalue05)
+
+summary(ari_xvalue05)
+summary(ari_xvalue1)
+

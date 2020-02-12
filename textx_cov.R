@@ -137,7 +137,7 @@ res022= FDAXsubgroup(ind = datx$ind,x = x, tm = datx$time,y = datx$obs,P = 2,
 
 plot(res022$betam)
 plot(res022$groupest)
-randIndex(group00, as.numeric(res022$group), correct = FALSE)
+randIndex(group00, as.numeric(res022$group))
 
 
 betam023 = betam022 + 1*matrix(rnorm(nrow(betam022)*ncol(betam022)),nrow(betam022),ncol(betam022))
@@ -188,6 +188,12 @@ distmaty = distmaty + t(distmaty)
 library(cluster)
 groupb4 = pam(distmaty, 10, diss = TRUE)$clustering
 res024 = refitFDAX(ind = datx$ind,tm = datx$time,x = x,y = datx$obs,group0 = groupb4, knots = knots)
+betam024 = res024$alpha[groupb4,]
+
+res024= FDAXsubgroup(ind = datx$ind,x = x, tm = datx$time,y = datx$obs,P = 2,
+                     betam0 = betam024,group0 = groupb4,knots = knots, K0 = 10,max.step = 5,
+                     lam = 0.8,maxiter = 50,tolabs = 1e-4,tolrel = 1e-2)
+randIndex(res024$groupest, group00)
 
 ########### BIC ##########
 source("BICvalue.R")

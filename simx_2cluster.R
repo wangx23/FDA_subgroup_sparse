@@ -44,6 +44,12 @@ subfunx = function(mm, sig200, lam00, mvec00, ncl00,
     }
   }
   
+  if(method = "pam")
+  {
+    groupb2 = pam(betam002[,-1], K0, diss = FALSE)$clustering
+    if(min(table(groupb2))>1){break}
+  }
+  
   if(method == "ydist")
   {
     ny = length(unique(datx$ind))

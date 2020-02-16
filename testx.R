@@ -12,6 +12,12 @@ library(flexclust)
 funlist21 = list(Vectorize(function(x){4*(x/50)^(0.2)}),
                Vectorize(function(x){-4*(x/50)^(0.2)}))
 
+fun1 = function(x){funlist21[[1]](x)}
+fun2 = function(x){funlist21[[2]](x)}
+
+curve(fun1,0,1, ylim = c(-1.5,1.5))
+curve(fun2,0,1, add = TRUE)
+
 eigenlist21 = list(Vectorize(function(x){sqrt(2)*sin(pi*x)}),
                  Vectorize(function(x){ sqrt(2)*cos(pi*x)}))
 

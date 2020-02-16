@@ -17,9 +17,9 @@ lamvec = seq(0.1,0.8,by = 0.05)
 
 
 subfunx3cluster = function(mm){
-  subfunx(mm, sig200 = sig200, lam00 = lamj00, mvec00 = mvec00,
+  subfunx_all(mm, sig200 = sig200, lam00 = lamj00, mvec00 = mvec00,
           ncl00 = 100, lamvec = lamvec,
-          funlist = funlist, eigenlist = eigenlist,xlist= xlist)
+          funlist = funlist1, eigenlist = eigenlist,xlist= xlist1, K0 = 15)
 }
 
 cl <- makeCluster(24)

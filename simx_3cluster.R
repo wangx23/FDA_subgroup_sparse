@@ -22,6 +22,10 @@ subfunx3cluster = function(mm){
           funlist = funlist1, eigenlist = eigenlist,xlist= xlist1, K0 = 15)
 }
 
+
+res1 = subfunx3cluster(1)
+
+library(doParallel)
 cl <- makeCluster(24)
 registerDoParallel(cl)
 result_x_3cluster_ncl100 <- foreach(mm=1:100,

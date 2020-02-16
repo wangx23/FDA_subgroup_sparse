@@ -3,8 +3,8 @@ source("simdatx.R")
 source("initial.R")
 source("refitFDA.R")
 source("FDAsubgroup.R")
+source("initialgroup.R")
 library(flexclust)
-library(doParallel)
 library(cluster)
 
 subfunx_all = function(mm, sig200, lam00, mvec00, ncl00,

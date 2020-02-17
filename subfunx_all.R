@@ -91,6 +91,7 @@ subfunx_all = function(mm, sig200, lam00, mvec00, ncl00,
     nllmat = matrix(0, length(lamvec),3)
     arim = matrix(0, length(lamvec),3)
     ngest = matrix(0, length(lamvec),3)
+    groupest_mat = array(0, dim = c(length(group0),length(lamvec),3))
     lamest1 = lamest2 = lamest3 = matrix(0, length(lamvec),3)
     
     #betam022 = refitINDX(ind = datx$ind, tm = datx$time, x=x, y = datx$obs, group0 = groupbb, knots = knots)
@@ -116,13 +117,14 @@ subfunx_all = function(mm, sig200, lam00, mvec00, ncl00,
           lamest2[j,Pv] = resi$lamj[2]
           lamest3[j,Pv] = resi$lamj[3]
           ngest[j,Pv] = length(unique(resi$groupest))
+          groupest_mat[,j,Pv] =  resi$groupest
         }
       }
     }
     
     
     outlist = list(nllmat = nllmat, arim = arim, lamest1= lamest1, lamest2 = lamest2,
-                   lamest3 = lamest3, ngest = ngest)
+                   lamest3 = lamest3, ngest = ngest, groupest = groupest_mat)
     return(outlist)
   }
   

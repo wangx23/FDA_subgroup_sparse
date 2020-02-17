@@ -23,12 +23,12 @@ subfunx3cluster = function(mm){
 }
 
 
-res1 = subfunx3cluster(1)
+#res1 = subfunx3cluster(1)
 
 library(doParallel)
 cl <- makeCluster(24)
 registerDoParallel(cl)
-result_x_3cluster_ncl100 <- foreach(mm=1:100,
+result_x_3cluster_ncl100 <- foreach(mm=1:150,
                              .packages=c("flexclust","orthogonalsplinebasis","plyr","cluster"),
                              .errorhandling = "remove") %dopar%subfunx3cluster(mm)
 stopCluster(cl)

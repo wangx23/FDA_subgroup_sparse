@@ -94,3 +94,58 @@ xtable(summary(cbind(lamest_x05_ncl100[,,1],lamest_x05_ncl100[,,2])), digits = 4
 
 summary(ari_x05_ncl50)
 summary(ari_x05_ncl50)
+
+
+
+#### 3cluster 
+load("../result/result_x_3cluster_ncl100.RData")
+
+arimbest = matrix(0,length(result_x_3cluster_ncl100),4)
+for(i in 1:length(result_x_3cluster_ncl100))
+{
+  arimbest[i,1] = max(result_x_3cluster_ncl100[[i]]$res_median$arim)
+  arimbest[i,2] = max(result_x_3cluster_ncl100[[i]]$res_kmeans$arim)
+  arimbest[i,3] = max(result_x_3cluster_ncl100[[i]]$res_pam$arim)
+  arimbest[i,4] = max(result_x_3cluster_ncl100[[i]]$res_ydist$arim)
+}
+
+
+#####  a function to generate different BIC and corresponding arim 
+## Cn is the term for # of groups, Pn is the term for the number of components ##
+## logn is a index for logn or logntotal 
+bicgroupfun = function(obj)
+{
+  n = 300
+  logn = log(n)
+  Cn = log(n)
+  nconstraints = (1:3)*((1:3)+1)/2
+  bicvalue1 = t(t(n*obj$nllmat) + t(Cn* logn*(obj$ngest*9)) + n*((1:3)*p - nconstraints))
+  index = which(bicvalue1 == min(bicvalue1), arr.ind = TRUE)
+  
+  ngest = obj$ngest[index]
+  Pest = index[2]
+  ariest = obj$arim[index]
+  aribest = max(obj$arim)
+  
+  out = c(ngest, Pest, ariest, aribest)
+  return(out)
+}
+
+
+fun1 = function(i)
+{
+  out1 = bicgroupfun(result_x_3cluster_ncl100[[i]]$res_median)
+  out2 = bicgroupfun(result_x_3cluster_ncl100[[i]]$res_kmeans)
+  out3 = bicgroupfun(result_x_3cluster_ncl100[[i]]$res_pam)
+  out4 = bicgroupfun(result_x_3cluster_ncl100[[i]]$res_ydist)
+  
+  out = cbind(out1, out2, out3, out4)
+  return(out[1,])
+}
+
+ngm = do.call("rbind",lapply(1:length(result_x_3cluster_ncl100),fun1))
+summary(ngm)
+apply(ngm,2,sd)
+
+colSums(ngm==3)
+

@@ -23,7 +23,7 @@ subfunx3cluster = function(mm){
 }
 
 
-#res1 = subfunx3cluster(1)
+res1 = subfunx3cluster(1)
 
 library(doParallel)
 cl <- makeCluster(24)

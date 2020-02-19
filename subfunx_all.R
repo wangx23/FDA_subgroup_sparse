@@ -8,7 +8,7 @@ library(flexclust)
 library(cluster)
 
 subfunx_all = function(mm, sig200, lam00, mvec00, ncl00,
-                       lamvec, funlist, eigenlist, xlist, K0 = 10)
+                       lamvec, funlist, eigenlist, xlist, K0 = 15)
 {
   
   datx = simdatx(xlist = xlist,
@@ -27,7 +27,7 @@ subfunx_all = function(mm, sig200, lam00, mvec00, ncl00,
   obasisobj = OBasis(knotsall)
   Bm = evaluate(obasisobj,datx$time)  ## orthogonal and include intercept 
   
-  betam002 = initiallap_mat(ind = datx$ind,y = datx$obs,xm = cbind(1, Bm[,-1]), lam = 0.001) 
+  betam002 = initiallap_mat(ind = datx$ind,y = datx$obs,xm = cbind(1, Bm[,-1]), lam = 0.0001) 
   
   # if(method == "median")
   #{
@@ -103,8 +103,8 @@ subfunx_all = function(mm, sig200, lam00, mvec00, ncl00,
       for(j in 1:length(lamvec))
       {
         resi = try(FDAXsubgroup(ind = datx$ind,x = x, tm = datx$time,y = datx$obs,P = Pv,
-                                betam0 = betam022,group0 = groupbb,knots = knots, K0 = 10,
-                                max.step = 5,
+                                betam0 = betam022,group0 = groupbb,knots = knots, K0 = 15,
+                                max.step = 10,
                                 lam = lamvec[j],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2))
         errori = inherits(resi,"try-error")
         if(errori)
@@ -136,6 +136,6 @@ subfunx_all = function(mm, sig200, lam00, mvec00, ncl00,
   
   
   output = list(res_median = res1, res_kmeans = res2, res_pam = res3,
-                res_ydist = res4)
+                res_ydist = res4, p = ncol(Bm) + ncol(x), ntotal = length(datx$obs))
   return(output)
 }

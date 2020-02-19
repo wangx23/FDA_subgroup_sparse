@@ -242,8 +242,8 @@ subfunx_all = function(mm, sig200, lam00, mvec00, ncl00,
       for(j in 1:length(lamvec))
       {
         resi = try(FDAXsubgroup(ind = datx$ind,x = x, tm = datx$time,y = datx$obs,P = Pv,
-                                betam0 = betam022,group0 = groupbb,knots = knots, K0 = 10,
-                                max.step = 5,
+                                betam0 = betam022,group0 = groupbb,knots = knots, K0 = 15,
+                                max.step = 10,
                                 lam = lamvec[j],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2))
         errori = inherits(resi,"try-error")
         if(errori)

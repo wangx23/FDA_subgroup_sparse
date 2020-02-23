@@ -7,8 +7,26 @@ source("initialgroup.R")
 library(flexclust)
 library(cluster)
 
+
+# funlist = list(Vectorize(function(x){cos(2*pi*x)}),
+#                 Vectorize(function(x){1-2*exp(-6*x)}),
+#                 Vectorize(function(x){-1.5*x})
+# )
+# 
+# eigenlist = list(Vectorize(function(x){sqrt(2)*sin(pi*x)}),
+#                  Vectorize(function(x){ sqrt(2)*cos(pi*x)}))
+# 
+# xlist = list(nx = 2, meanx = 0, sdx = 1, etag = matrix(c(-0.5,-0.5,0.5,0.5,1,1),nrow = 2))
+# sig200 = 0.04
+# lamj00 = c(0.2,0.1)
+# lamj00 = c(0.15, 0.1)
+# mvec00 = c(10,20)
+# lamvec = seq(0.2,0.8,by = 0.025)
+# 
+
 subfunx_all = function(mm, sig200, lam00, mvec00, ncl00,
-                       lamvec, funlist, eigenlist, xlist, K0 = 15)
+                       lamvec, funlist, eigenlist, xlist, 
+                       K0 = 15, ming = 1, max.step)
 {
   
   datx = simdatx(xlist = xlist,
@@ -32,18 +50,18 @@ subfunx_all = function(mm, sig200, lam00, mvec00, ncl00,
   # if(method == "median")
   #{
   betam021median = apply(betam002[,-1], 1, median)
-  groupb21 = as.numeric(cut(betam021median,quantile(betam021median,seq(0,1,by=0.1)), include.lowest = TRUE))
+  groupb21 = as.numeric(cut(betam021median,quantile(betam021median,seq(0,1,length.out = K0+1)), include.lowest = TRUE))
   #}
   
   # if(method == "kmeans")
   #{
-  groupb22 = initialgroup_ks(betam002[,-1],K0 = K0)
+  groupb22 = initialgroup_ks(betam002[,-1],K0 = K0, ming = ming)
   
   #}
   
   #if(method == "pam")
   #{
-  groupb23 = initialgroup_pam(betam002[,-1],K0 = K0, diss = FALSE)
+  groupb23 = initialgroup_pam(betam002[,-1],K0 = K0, diss = FALSE, ming = ming)
   #}
   
   #if(method == "ydist")
@@ -81,7 +99,8 @@ subfunx_all = function(mm, sig200, lam00, mvec00, ncl00,
   t2 = Sys.time()
   
   distmaty = distmaty + t(distmaty)
-  groupb24 = pam(distmaty, K0, diss = TRUE)$clustering
+  #groupb24 = pam(distmaty, K0, diss = TRUE)$clustering
+  groupb24 = initialgroup_pam(distmaty,K0 = K0, diss = TRUE)
   # }
   
   
@@ -98,13 +117,14 @@ subfunx_all = function(mm, sig200, lam00, mvec00, ncl00,
     
     betam022 = refitFDAX(ind = datx$ind,tm = datx$time,x = x,y = datx$obs,group0 = groupbb, knots = knots)$alpha[groupbb,]
     
+    t1 = Sys.time()
     for(Pv in 1:3)
     {
       for(j in 1:length(lamvec))
       {
         resi = try(FDAXsubgroup(ind = datx$ind,x = x, tm = datx$time,y = datx$obs,P = Pv,
-                                betam0 = betam022,group0 = groupbb,knots = knots, K0 = 15,
-                                max.step = 10,
+                                betam0 = betam022,group0 = groupbb,knots = knots, K0 = K0,
+                                max.step = max.step,
                                 lam = lamvec[j],maxiter = 50,tolabs = 1e-4,tolrel = 1e-2))
         errori = inherits(resi,"try-error")
         if(errori)
@@ -121,6 +141,7 @@ subfunx_all = function(mm, sig200, lam00, mvec00, ncl00,
         }
       }
     }
+    t2 = Sys.time()
     
     
     outlist = list(nllmat = nllmat, arim = arim, lamest1= lamest1, lamest2 = lamest2,

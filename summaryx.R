@@ -101,25 +101,65 @@ summary(ari_x05_ncl50)
 load("../result/result_x_3cluster_ncl100.RData")
 
 arimbest = matrix(0,length(result_x_3cluster_ncl100),4)
+arim2 = matrix(0,length(result_x_3cluster_ncl100),4)
 for(i in 1:length(result_x_3cluster_ncl100))
 {
   arimbest[i,1] = max(result_x_3cluster_ncl100[[i]]$res_median$arim)
   arimbest[i,2] = max(result_x_3cluster_ncl100[[i]]$res_kmeans$arim)
   arimbest[i,3] = max(result_x_3cluster_ncl100[[i]]$res_pam$arim)
   arimbest[i,4] = max(result_x_3cluster_ncl100[[i]]$res_ydist$arim)
+  
+  
+  arim2[i,1] = result_x_3cluster_ncl100[[i]]$res_median$arim[result_x_3cluster_ncl100[[i]]$res_median$ngest[,2] == 3,2][1]
+  arim2[i,2] = result_x_3cluster_ncl100[[i]]$res_kmeans$arim[result_x_3cluster_ncl100[[i]]$res_kmeans$ngest[,2] == 3,2][1]
+  arim2[i,3] = result_x_3cluster_ncl100[[i]]$res_pam$arim[result_x_3cluster_ncl100[[i]]$res_pam$ngest[,2] == 3,2][1]
+  arim2[i,4] = result_x_3cluster_ncl100[[i]]$res_ydist$arim[result_x_3cluster_ncl100[[i]]$res_ydist$ngest[,2] == 3,2][1]
+  
 }
 
 
 #####  a function to generate different BIC and corresponding arim 
 ## Cn is the term for # of groups, Pn is the term for the number of components ##
 ## logn is a index for logn or logntotal 
-bicgroupfun = function(obj)
+bicgroupfun = function(obj, Cnpen = "log", n = 300, p =9, Ppen = "n", combined = FALSE)
 {
-  n = 300
+  if(Cnpen == "log" )
+  {
+    Cn = log(n*p)
+  }
+  if(Cnpen =="loglog")
+  {
+    Cn = log(log(n*p))
+  }
+  
+  if(Ppen == "n")
+  {
+    Pn = n
+  }
+  
+  if(Ppen == "logn")
+  {
+    Pn = log(n)
+  }
+  
   logn = log(n)
-  Cn = log(n)
+
   nconstraints = (1:3)*((1:3)+1)/2
-  bicvalue1 = t(t(n*obj$nllmat) + t(Cn* logn*(obj$ngest*9)) + n*((1:3)*p - nconstraints))
+  bicvalue1 = t(t(n*obj$nllmat) + t(Cn* logn*(obj$ngest*p)) + Pn*((1:3)*(p-2) - nconstraints))
+  
+  if(combined)
+  {
+    if(Cnpen == "log" )
+    {
+      Cn = log(n*p + (1:3)*(p-2) - nconstraints)
+    }
+    if(Cnpen =="loglog")
+    {
+      Cn = log(log(n*p + (1:3)*(p-2) - nconstraints))
+    }
+    
+    bicvalue1 = n*obj$nllmat + t(Cn* logn*(t(obj$ngest*p) + (1:3)*(p-2) - nconstraints))
+  }
   index = which(bicvalue1 == min(bicvalue1), arr.ind = TRUE)
   
   ngest = obj$ngest[index]
@@ -132,20 +172,98 @@ bicgroupfun = function(obj)
 }
 
 
-fun1 = function(i)
+
+BICdef = function(Cnpen, Ppen, combined = FALSE)
 {
-  out1 = bicgroupfun(result_x_3cluster_ncl100[[i]]$res_median)
-  out2 = bicgroupfun(result_x_3cluster_ncl100[[i]]$res_kmeans)
-  out3 = bicgroupfun(result_x_3cluster_ncl100[[i]]$res_pam)
-  out4 = bicgroupfun(result_x_3cluster_ncl100[[i]]$res_ydist)
+  fun1 = function(i)
+  {
+    out1 = bicgroupfun(result_x_3cluster_ncl100[[i]]$res_median, Cnpen = Cnpen, Ppen = Ppen,combined = combined)
+    out2 = bicgroupfun(result_x_3cluster_ncl100[[i]]$res_kmeans,Cnpen =Cnpen, Ppen = Ppen,combined = combined)
+    out3 = bicgroupfun(result_x_3cluster_ncl100[[i]]$res_pam,Cnpen =Cnpen, Ppen = Ppen,combined = combined)
+    out4 = bicgroupfun(result_x_3cluster_ncl100[[i]]$res_ydist,Cnpen =Cnpen, Ppen = Ppen,combined = combined)
+    
+    out = cbind(out1, out2, out3, out4)
+    return(out)
+  }
   
-  out = cbind(out1, out2, out3, out4)
-  return(out[1,])
+  res = lapply(1:length(result_x_3cluster_ncl100),fun1)
+  ngm = Pestm = ariestm = aribestm = matrix(0, length(result_x_3cluster_ncl100),4)
+  
+  for(i in 1:length(result_x_3cluster_ncl100))
+  {
+    ngm[i,] = res[[i]][1,]
+    Pestm[i,] = res[[i]][2,]
+    ariestm[i,] = res[[i]][3,]
+    aribestm[i,] = res[[i]][4,]
+  }
+  
+  
+  outlist = list(ng = ngm, Pest = Pestm, ariest = ariestm, aribest = aribestm)
+  return(outlist)
+
+  
 }
 
-ngm = do.call("rbind",lapply(1:length(result_x_3cluster_ncl100),fun1))
-summary(ngm)
-apply(ngm,2,sd)
+res1 = BICdef(Cnpen = "log", Ppen ="n")
 
-colSums(ngm==3)
+summary(res1$ng)
+apply(res1$ng,2,sd)
+colSums(res1$ng==3)
+
+summary(res1$Pest)
+apply(res1$Pest,2,sd)
+colSums(res1$Pest==2)
+
+summary(res1$ariest)
+summary(res1$aribest)
+
+
+res2 = BICdef(Cnpen = "loglog", Ppen ="n")
+
+summary(res2$ng)
+apply(res2$ng,2,sd)
+colSums(res2$ng==3)
+
+summary(res2$Pest)
+apply(res2$Pest,2,sd)
+colSums(res2$Pest==2)
+
+summary(res2$ariest)
+
+res3 = BICdef(Cnpen = "log", Ppen ="log")
+
+summary(res3$ng)
+apply(res3$ng,2,sd)
+colSums(res3$ng==3)
+
+summary(res3$Pest)
+apply(res3$Pest,2,sd)
+colSums(res3$Pest==2)
+
+res4 = BICdef(Cnpen = "loglog", Ppen ="log")
+
+summary(res4$ng)
+apply(res4$ng,2,sd)
+colSums(res4$ng==3)
+
+summary(res4$Pest)
+apply(res4$Pest,2,sd)
+colSums(res4$Pest==2)
+
+
+res5 = BICdef(Cnpen = "loglog", Ppen = "n", combined = TRUE)
+
+summary(res5$ng)
+apply(res5$ng,2,sd)
+colSums(res5$ng==3)
+
+summary(res5$Pest)
+apply(res5$Pest,2,sd)
+colSums(res5$Pest==2)
+
+
+######  best ##### 
+
+
+
 

@@ -54,7 +54,7 @@ initialgroup_pam = function(x, K0, diss = TRUE, ming = 1)
   {
     index1 = as.numeric(names(ngobs)[ngobs<=ming])[1]
     
-    grouporder[index1] = grouporder[which.min(distmat[grouppam==index1,id.med])]
+    grouporder[index1] = grouporder[which.min(distmat[id.med,id.med][index1,])]
     grouppam[grouppam==index1] = grouporder[index1]
     ngobs = table(grouppam)
     

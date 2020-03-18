@@ -13,45 +13,46 @@ library(cluster)
 #                 Vectorize(function(x){-1.5*x})
 # )
 # 
-funlist = list(Vectorize(function(x){sqrt(2)*sin(4*pi*x)}),
-               Vectorize(function(x){exp(-10*(x-0.25)^2)})
-)
-
-
-funlist = list(Vectorize(function(x){4*(x -0.5)^2+1}),
-               Vectorize(function(x){2.5*exp(-25*(x-0.25)^2) + 2*exp(-50*(x-0.75)^2)})
-)
-
-
-
-
-eigenlist = list(Vectorize(function(x){sqrt(2)*sin(pi*x)}),
-                 Vectorize(function(x){ sqrt(2)*cos(pi*x)}))
-
-#xlist = list(nx = 2, meanx = 0, sdx = 1, etag = matrix(c(-0.5,-0.5,0.5,0.5,1,1),nrow = 2))
-xlist = list(nx = 2, meanx = 0, sdx = 1, etag = matrix(c(-0.5,-0.5,0.5,0.5),nrow = 2))
-
-sig200 = 0.04
-lamj00 = c(0.15,0.1)
-lamj00 = c(0.08, 0.04)
-mvec00 = c(10,20)
-lamvec = seq(0.3,1,by = 0.05)
-lamvec = seq(0.2,0.5, by = 0.01)
-lamvec1 = seq(0.2,0.35, by = 0.005)
-lamvec2 = seq(0.3,0.55, by = 0.01)
-lamvec3 = seq(0.45,0.55, by = 0.005)
-lamvec4 = seq(0.3,0.6, by = 0.005)
-
-ncl00 = 100
-K0 = 15
-ming = 2
-max.step = 5
+# funlist = list(Vectorize(function(x){sqrt(2)*sin(4*pi*x)}),
+#                Vectorize(function(x){exp(-10*(x-0.25)^2)})
+# )
+# 
+# 
+# funlist = list(Vectorize(function(x){4*(x -0.5)^2+1}),
+#                Vectorize(function(x){2.5*exp(-25*(x-0.25)^2) + 2*exp(-50*(x-0.75)^2)})
+# )
+# 
+# 
+# 
+# 
+# eigenlist = list(Vectorize(function(x){sqrt(2)*sin(pi*x)}),
+#                  Vectorize(function(x){ sqrt(2)*cos(pi*x)}))
+# 
+# #xlist = list(nx = 2, meanx = 0, sdx = 1, etag = matrix(c(-0.5,-0.5,0.5,0.5,1,1),nrow = 2))
+# xlist = list(nx = 2, meanx = 0, sdx = 1, etag = matrix(c(-0.5,-0.5,0.5,0.5),nrow = 2))
+# 
+# sig200 = 0.04
+# lamj00 = c(0.15,0.1)
+# lamj00 = c(0.1, 0.05)
+# mvec00 = c(10,20)
+# lamvec = seq(0.3,1,by = 0.05)
+# lamvec = seq(0.2,0.5, by = 0.01)
+# lamvec1 = seq(0.2,0.35, by = 0.005)
+# lamvec2 = seq(0.3,0.55, by = 0.01)
+# lamvec3 = c(seq(0.15,0.2,by = 0.005),seq(0.25,0.7, by = 0.05))
+# lamvec4 = seq(0.3,0.8, by = 0.02)
+# 
+# ncl00 = 100
+# K0 = 15
+# ming = 2
+# max.step = 5
 
 # 
 
 subfunx_all = function(mm, sig200, lam00, mvec00, ncl00,
                        lamvec, funlist, eigenlist, xlist, 
-                       K0 = 15, ming = 1, max.step)
+                       K0 = 15, ming = 1, max.step,
+                       lamvec1, lamvec2, lamvec3, lamvec4)
 {
   
   datx = simdatx(xlist = xlist,
@@ -163,6 +164,7 @@ subfunx_all = function(mm, sig200, lam00, mvec00, ncl00,
           lamest3[j,Pv] = resi$lamj[3]
           ngest[j,Pv] = length(unique(resi$groupest))
           groupest_mat[,j,Pv] =  resi$groupest
+         # betam022 = resi$betam
         }
       }
     }

@@ -19,8 +19,8 @@ lamvec1 = seq(0.3,0.7, by = 0.0)
 lamvec2 = seq(0.2,0.55, by = 0.01)
 #lamvec3 = c(seq(0.15,0.2,by = 0.005),seq(0.25,0.7, by = 0.05))
 lamvec3 = seq(0.15,0.7, by = 0.02)
-lamvec4 = c(seq(0.3,0.5, by = 0.02), seq(0.501,0.55,by = 0.001))
-
+#lamvec4 = c(seq(0.3,0.5, by = 0.02), seq(0.501,0.55,by = 0.001))
+lamvec4 = seq(0.2,0.6, by = 0.02)
 
 lamvec1 = 0.2
 lamvec2 = 0.1

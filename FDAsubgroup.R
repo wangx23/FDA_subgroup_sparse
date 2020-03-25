@@ -45,7 +45,7 @@ source("getgroup.R")
 
 #"EMgroup" or "EMcov"
 FDAsubgroup = function(ind, tm, y, P = 2, betam0, knots, boundary = c(0,1),
-                       lam = 0.5, nu = 1, gam = 3, maxiter = 500, initial ="EMcov",
+                       lam = 0.5, nu = 1, gam = 3, maxiter = 1000, initial ="EMcov",
                        tolabs = 1e-5, tolrel = 1e-3,
                        maxiterem = 50, tolem = 1e-3, K0 = 10, 
                        sl.v=rep(0.5,10), max.step = 20, 

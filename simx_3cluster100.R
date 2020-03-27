@@ -16,10 +16,16 @@ lamj00 = c(0.15, 0.1)
 mvec00 = c(10,20)
 lamvec = seq(0.2,0.8,by = 0.025)
 
+lamvec1 = lamvec
+lamvec2 = lamvec
+lamvec3 = lamvec
+lamvec4 = lamvec
+
 
 subfunx3cluster = function(mm){
   subfunx_all(mm, sig200 = sig200, lam00 = lamj00, mvec00 = mvec00,
-          ncl00 = 100, lamvec = lamvec,
+          ncl00 = 100, 
+          lamvec1 = lamvec1, lamvec2 = lamvec2, lamvec3 = lamvec3, lamvec4 = lamvec4, 
           funlist = funlist1, eigenlist = eigenlist,xlist= xlist1, 
           K0 = 15,ming = 1, max.step = 5)
 }

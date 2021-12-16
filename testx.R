@@ -26,7 +26,7 @@ sig200 = 0.01
 lamj00 = c(0.1,0.05)
 
 datx = simdatx(xlist = xlist,
-                 sig2 = sig200,lamj = lamj00,mvec = c(5,20),ncl = 50,
+                 sig2 = sig200,lamj = lamj00,mvec = c(100,100),ncl = 50,
                  funlist = funlist21, eigenlist = eigenlist21, seed = 20 + 4452)
 
 ind = datx$ind
@@ -96,7 +96,7 @@ wts = rep(1, 100*(100-1)/2) ## weights
 ### Bm includes the intercept ###
 ## if parametric part is known 
 betam001 = initiallap_mat(ind = datx0$ind,y = datx0$obs - datx0$meanx,xm = Bm, lam = 0.001)
-betam002 = initiallap_mat(ind = datx0$ind,y = datx0$obs,xm = cbind(1, Bm[,-1]), lam = 0.0001) ### the mean term is an intercept 
+betam002 = initiallap_mat(ind = datx0$ind,y = datx0$obs,xm = cbind(1, Bm), lam = 0.001) ### the mean term is an intercept 
 betam003 = initial_indiv(ind = datx0$ind, y = datx0$obs, xm = cbind(1, Bm[,-1]), lam = 0) ## each has its own coefficients
 
 mean002 = rowSums(Bm[,-1] * betam002[datx0$ind,-1])

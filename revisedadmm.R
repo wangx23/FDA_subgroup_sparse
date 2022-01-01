@@ -81,7 +81,7 @@ revisedadmm = function(Bmlist, ylist, n, p, npair,
   matinv = resinv[[1]]
   Bty = resinv[[2]]
   
-  betanew = matinv%*%(Bty + c((deltam -  vm/nu) %*% Dmat))
+  betanew = matinv%*%(Bty + nu*c((deltam -  vm/nu) %*% Dmat))
   betam = matrix(betanew, n, p, byrow = TRUE)
   betadiff = t(Dmat %*% betam)
   deltam = betadiff + (1/nu) * vm
@@ -142,15 +142,16 @@ inverseBx = function(xmlist, Bmlist, ylist, theta, lamj, sig2, n, p, nu = 1)
 
 revisedadmmx = function(xmlist, Bmlist, ylist, n, p, npair,
                        Dmat,deltam, vm, lam, nu = 1, gam = 3,
-                       theta, lamj, sig2)
+                       theta, lamj, sig2, avalue = 1)
 {
   
   ### update beta
-  resinv = inverseBx(xmlist, Bmlist, ylist, theta, lamj, sig2, n, p, nu = nu)
+  resinv = inverseBx(xmlist, Bmlist, ylist, theta, lamj, sig2, n, p, 
+                     nu = nu*avalue)
   matinv = resinv[[1]]
   Bty = resinv[[2]]
   
-  betanew = matinv%*%(Bty + c((deltam -  vm/nu) %*% Dmat))
+  betanew = matinv%*%(Bty + nu*avalue*c((deltam -  vm/nu) %*% Dmat))
   betam = matrix(betanew, n, p, byrow = TRUE)
   betadiff = t(Dmat %*% betam)
   deltam = betadiff + (1/nu) * vm

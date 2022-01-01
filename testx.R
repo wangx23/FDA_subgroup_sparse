@@ -68,6 +68,10 @@ res2 = FDAsubgroup(ind = datx$ind, tm = datx$time,y = datx$obs - datx$meanx, P= 
                    lam = 0.24,maxiter = 50,tolabs = 1e-4,tolrel = 1e-2)
 table(res2$groupest)
 
+
+betam003 = initial_indiv(ind = datx$ind, y = datx$obs, xm = cbind(1, Bm[,-1]), lam = 0) ## each has its own coefficients
+
+
 ### note: traditional method does not work
 
 ########### no covariance#######
@@ -78,26 +82,34 @@ library(orthogonalsplinebasis)
 xlist = list(nx = 2, meanx = 0, sdx = 1, etag = matrix(c(-2,-2,2,2),nrow = 2)) # two groups of x
 
 datx0 = simdatx(xlist = xlist,
-               sig2 =0.01,lamj = c(0,0),mvec = c(5,20),ncl = 50,
+               sig2 =0.01,lamj = c(0,0),mvec = c(200,200),ncl = 50,
                funlist = funlist21, eigenlist = eigenlist21, seed = 20 + 4452)
 group00 = unique(datx0[,c("group","ind")])[,1] ## true group 
 
 ntotal = length(datx0$obs)
-knots = seq(0,1,length.out = 5)[2:4]
+knots = seq(0,1,length.out = 6)[2:5]
 knotsall = c(rep(0,4),knots, rep(1,4))
 obasisobj = OBasis(knotsall)
 Bm = evaluate(obasisobj,datx0$time)  ## orthogonal and include intercept 
+Bm0 = evaluate(obasisobj,0) 
 
 x = as.matrix(datx0[,c("x1","x2")]) ## 
 
 wts = rep(1, 100*(100-1)/2) ## weights 
 
+library(splines)
+Bm1 <- bs(datx0$time, knots = knots, intercept = T, Boundary.knots = c(0,1))
+Bm10 <- bs(0, knots = knots, intercept = T, Boundary.knots = c(0,1))
 
 ### Bm includes the intercept ###
 ## if parametric part is known 
-betam001 = initiallap_mat(ind = datx0$ind,y = datx0$obs - datx0$meanx,xm = Bm, lam = 0.001)
-betam002 = initiallap_mat(ind = datx0$ind,y = datx0$obs,xm = cbind(1, Bm), lam = 0.001) ### the mean term is an intercept 
-betam003 = initial_indiv(ind = datx0$ind, y = datx0$obs, xm = cbind(1, Bm[,-1]), lam = 0) ## each has its own coefficients
+betam001 = initiallap_mat(ind = datx0$ind,y = datx0$obs,xm = Bm, lam = 0.001)
+betam002 = initiallap_mat(ind = datx0$ind,y = datx0$obs,xm = cbind(1, Bm[,-1]), lam = 0.001) ### the mean term is an intercept 
+betam003 = initial_indiv(ind = datx0$ind, y = datx0$obs, xm = Bm,lam = 0) ## each has its own coefficients
+
+betam0031 = initial_indiv(ind = datx0$ind, y = datx0$obs, xm = Bm1,lam = 0)
+
+x0 <- betam003 %*% t(Bm0)
 
 mean002 = rowSums(Bm[,-1] * betam002[datx0$ind,-1])
 residuals002 = datx0$obs - mean002
@@ -151,7 +163,7 @@ plot(res02$group)
 x1 = x + 0.05*matrix(rnorm(nrow(x)*2),nrow(x),2)
 
 repeat{
-  groupb = kmeans(betam002[,-1],centers = 10, iter.max = 20)$cluster
+  groupb = kmeans(betam003[,-1],centers = 2, iter.max = 20)$cluster
   if(min(table(groupb))>1){break}
 }
 

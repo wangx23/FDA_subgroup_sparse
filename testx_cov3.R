@@ -4,6 +4,7 @@ source("simdatx.R")
 source("initial.R")
 source("refitFDA.R")
 source("FDAsubgroup.R")
+source("FDAXsubgroup.R")
 library(flexclust)
 
 
@@ -21,7 +22,8 @@ curve(funlist1[[3]](x),0,1, add = TRUE,col = "blue")
 eigenlist = list(Vectorize(function(x){sqrt(2)*sin(pi*x)}),
                    Vectorize(function(x){ sqrt(2)*cos(pi*x)}))
 
-xlist1 = list(nx = 2, meanx = 0, sdx = 1, etag = matrix(c(-0.5,-0.5,0.5,0.5,1,1),nrow = 2))
+xlist1 = list(nx = 2, meanx = 0, sdx = 1, 
+              etag = matrix(c(-0.5,-0.5,0.5,0.5,1.5,1.5),nrow = 2))
 sig200 = 0.04
 lamj00 = c(0.2,0.1)
 mvec00 = c(10,20)
@@ -44,17 +46,20 @@ group00 = unique(datx[,c("group","ind")])[,1] ## true group
 
 
 #### true group ###
-res00 = refitFDAX(ind = datx$ind,tm = datx$time,x = x, y = datx$obs,P = 2,group0 = group00, 
-                  knots = knots)
+res00 = refitFDAX(ind = datx$ind,tm = datx$time,x = x, y = datx$obs,
+                  P = 2,group0 = group00, knots = knots)
 betatd00 = res00$alpha[group00,] ### true eta and beta 
 
 
 
-betam02 = betatd00 + 0.5*rnorm(nrow(betatd00)*ncol(betatd00))
+betam02 = betatd00 + 0.35*rnorm(nrow(betatd00)*ncol(betatd00))
+plot(betam02)
 res2= FDAXsubgroup(ind = datx$ind,x = x, tm = datx$time,y = datx$obs,P = 3,
                    betam0 = betam02,knots = knots, K0 = 10, max.step = 10,
                    lam = 0.5,maxiter = 50,tolabs = 1e-4,tolrel = 1e-2)
 randIndex(res2$groupest, group00)
+plot(res2$betam)
+plot(res2$groupest, group00)
 
 
 
@@ -75,9 +80,12 @@ plot(betam002[group00==1,1],unique(datx$meanx)[group00==1] )
 abline(0,1)
 plot(betam002[group00==2,1],unique(datx$meanx)[group00==2] )
 abline(0,1)
+plot(betam002[group00==3,1],unique(datx$meanx)[group00==3] )
+abline(0,1)
 
 betam002[group00==1,1] - unique(datx$meanx)[group00==1]
 betam002[group00==2,1] - unique(datx$meanx)[group00==2]
+betam002[group00==3,1] - unique(datx$meanx)[group00==3]
 
 library(cluster)
 
